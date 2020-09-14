@@ -1,0 +1,807 @@
+definitions:
+  cluster.ClusterResponse:
+    properties:
+      cluster:
+        $ref: '#/definitions/model.Cluster'
+        type: object
+    type: object
+  cluster.DeploymentsResponse:
+    properties:
+      items:
+        description: '@description 无状态资源列表'
+        items:
+          $ref: '#/definitions/model.DeploymentDetail'
+        type: array
+    type: object
+  cluster.NameSpacesRequest:
+    properties:
+      name:
+        description: '@description 命名空间'
+        type: string
+    type: object
+  cluster.NameSpacesResponse:
+    properties:
+      exist:
+        type: boolean
+      namespaces:
+        items:
+          $ref: '#/definitions/model.NamespaceDetail'
+        type: array
+    type: object
+  cluster.NodeRequest:
+    properties:
+      name:
+        description: '@description 节点名'
+        type: string
+    type: object
+  cluster.NodeResponse:
+    properties:
+      exist:
+        description: '@description 是否存在'
+        type: boolean
+      node:
+        $ref: '#/definitions/model.NodeDetail'
+        type: object
+    type: object
+  cluster.PodInfoRequest:
+    properties:
+      namespace:
+        description: '@description 命名空间'
+        type: string
+      podName:
+        description: '@description pod'
+        type: string
+    type: object
+  cluster.PodInfoResponse:
+    properties:
+      exist:
+        description: '@description 是否存在'
+        type: boolean
+      pod:
+        $ref: '#/definitions/model.PodDetail'
+        description: '@description pod信息'
+        type: object
+    type: object
+  cluster.PodsRequest:
+    properties:
+      namespace:
+        description: '@description 命名空间'
+        type: string
+    type: object
+  cluster.PodsResponse:
+    properties:
+      pods:
+        description: '@description pods列表'
+        items:
+          $ref: '#/definitions/model.PodDetail'
+        type: array
+    type: object
+  cluster.ResourceRequest:
+    properties:
+      name:
+        description: '@description 资源名称'
+        type: string
+      namespace:
+        description: '@description 命名空间'
+        type: string
+    type: object
+  cluster.ServiceResponse:
+    properties:
+      items:
+        description: '@description 有状态资源列表'
+        items:
+          $ref: '#/definitions/model.ServiceDetail'
+        type: array
+    type: object
+  cluster.StatefulSetsResponse:
+    properties:
+      items:
+        description: '@description 有状态资源列表'
+        items:
+          $ref: '#/definitions/model.StatefulSetDetail'
+        type: array
+    type: object
+  deploy.DeleteRequest:
+    properties:
+      kind:
+        description: '@description 资源类型 可选 Deployment | StatefulSet | Service'
+        type: string
+      name:
+        description: '@description 资源名称'
+        type: string
+      namespace:
+        description: '@description 命名空间'
+        type: string
+    type: object
+  deploy.DeployRequest:
+    properties:
+      annotations:
+        additionalProperties:
+          type: string
+        description: '@description 注释'
+        type: object
+      args:
+        description: '@description 初始参数'
+        items:
+          type: string
+        type: array
+      clusterIp:
+        type: string
+      command:
+        description: '@description 容器启动执行的命令'
+        items:
+          type: string
+        type: array
+      createService:
+        description: |-
+          @description ============   service   ==================
+          @description 是否创建serice
+        type: boolean
+      envs:
+        description: '@description 环境变量数据'
+        type: string
+      image:
+        description: '@description 镜像名称'
+        type: string
+      imagePullPolicy:
+        default: IfNotPresent
+        description: '@description 镜像拉去策略 Always | Never | IfNotPresent'
+        type: string
+      kind:
+        description: |-
+          @description  ========  Object  ===========
+          @description 资源类型 可选 Deployment | StatefulSet | Service
+        type: string
+      matchLabels:
+        additionalProperties:
+          type: string
+        description: '@description 上层spec标签'
+        type: object
+      maxSurge:
+        default: 1
+        description: '@description 滚动升级时候,会优先启动的pod数量'
+        type: integer
+      maxUnavailable:
+        default: 1
+        description: '@description 滚动升级时候,最大的unavailable数量'
+        type: integer
+      name:
+        description: '@description 服务名称'
+        type: string
+      namespace:
+        description: '@description 命名空间'
+        type: string
+      nodeSelector:
+        additionalProperties:
+          type: string
+        description: '@description 节点选择 node:node1'
+        type: object
+      objectMetaLabels:
+        additionalProperties:
+          type: string
+        description: '@description 资源'
+        type: object
+      partition:
+        description: '@description Partition'
+        type: integer
+      podName:
+        description: |-
+          @description ============  Containers  ==================
+          @description pod名
+        type: string
+      podPort:
+        description: '@description 容器暴露端口'
+        type: string
+      replicas:
+        description: |-
+          @description =========   spec   ============
+          @description 副本数量
+        type: integer
+      resources:
+        description: '@description 资源限制'
+        type: string
+      serviceName:
+        description: '@description service名'
+        type: string
+      servicePorts:
+        description: '@description 端口映射'
+        type: string
+      serviceType:
+        description: '@description 可选 ClusterIP | NodePort | LoadBalancer'
+        type: string
+      statefulType:
+        description: |-
+          @description ============= statefulSet  ================
+          @description 有状态服务专用 可选 RollingUpdate | OnDelete
+        type: string
+      templateLabels:
+        additionalProperties:
+          type: string
+        description: |-
+          @description =============  template  =============
+          @description template标签
+        type: object
+      volumeMounts:
+        description: '@description 目录挂载'
+        type: string
+      volumes:
+        description: '@description 外部目录映射'
+        type: string
+      workingDir:
+        description: '@description 工作目录'
+        type: string
+    type: object
+  deploy.NamespaceRequest:
+    properties:
+      namespace:
+        description: '@description 命名空间'
+        type: string
+    type: object
+  deploy.UploadResponse:
+    properties:
+      file:
+        description: '@description 文件名'
+        type: string
+    type: object
+  model.Cluster:
+    properties:
+      activePodNum:
+        description: '@description 运行的pod数量'
+        type: integer
+      namespaceDetail:
+        items:
+          $ref: '#/definitions/model.NamespaceDetail'
+        type: array
+      namespaceNum:
+        description: '@description 命名空间相关信息'
+        type: integer
+      nodeNum:
+        description: '@description 节点数量'
+        type: integer
+      nodes:
+        description: '@description 节点详情'
+        items:
+          $ref: '#/definitions/model.NodeDetail'
+        type: array
+      podNum:
+        description: '@description pod上线数量'
+        type: integer
+      resource:
+        $ref: '#/definitions/model.ResourceDetail'
+        description: '@description 集群总的指标情况'
+        type: object
+      runNodeNum:
+        description: '@description 正常运行的节点数量'
+        type: integer
+    type: object
+  model.DeploymentDetail:
+    properties:
+      kind:
+        default: Deployment
+        description: '@description 资源类型'
+        type: string
+      name:
+        type: string
+      namespace:
+        type: string
+      spec:
+        type: string
+      status:
+        type: string
+    type: object
+  model.NamespaceDetail:
+    properties:
+      createTime:
+        type: string
+      deployments:
+        description: '@description 无状态资源'
+        items:
+          $ref: '#/definitions/model.DeploymentDetail'
+        type: array
+      name:
+        type: string
+      services:
+        description: '@description 服务资源'
+        items:
+          $ref: '#/definitions/model.ServiceDetail'
+        type: array
+      statefulSets:
+        description: '@description 有状态资源'
+        items:
+          $ref: '#/definitions/model.StatefulSetDetail'
+        type: array
+    type: object
+  model.NodeDetail:
+    properties:
+      annotation:
+        additionalProperties:
+          type: string
+        description: '@description 注释'
+        type: object
+      clusterName:
+        description: '@description 集群名'
+        type: string
+      createTime:
+        description: '@description 创建时间'
+        type: string
+      dockVersion:
+        description: '@description docker版本'
+        type: string
+      hostIp:
+        description: '@description 主机IP'
+        type: string
+      imageNum:
+        description: '@description 镜像数量'
+        type: integer
+      isValid:
+        description: '@description 是否有效'
+        type: string
+      kernlVersion:
+        description: '@description 内核版本'
+        type: string
+      kuBeLetVersion:
+        description: '@description Kubelet版本'
+        type: string
+      kuProxyVersion:
+        description: '@description Kubelet版本'
+        type: string
+      label:
+        additionalProperties:
+          type: string
+        description: '@description 主机标签'
+        type: object
+      lastHeartbeatTime:
+        description: '@description 最后一次心跳时间'
+        type: string
+      name:
+        type: string
+      nodeID:
+        description: '@description nodeId'
+        type: string
+      podNum:
+        description: '@description pod数量'
+        type: integer
+      podRun:
+        description: '@description 部署的pod总量'
+        type: integer
+      podTotal:
+        description: '@description 部署的pod总量'
+        type: integer
+      pods:
+        description: '@description pod列表'
+        items:
+          $ref: '#/definitions/model.PodDetail'
+        type: array
+      resource:
+        $ref: '#/definitions/model.ResourceDetail'
+        type: object
+      role:
+        description: '@description 角色'
+        type: string
+      status:
+        description: '@description 状态'
+        type: string
+      systemOs:
+        description: '@description 操作系统'
+        type: string
+      systemType:
+        description: '@description 操作系统类型'
+        type: string
+    type: object
+  model.PodDetail:
+    properties:
+      annotation:
+        additionalProperties:
+          type: string
+        description: '@description 注释'
+        type: object
+      createTime:
+        description: '@description 创建时间'
+        type: string
+      id:
+        type: string
+      label:
+        additionalProperties:
+          type: string
+        description: '@description 主机标签'
+        type: object
+      name:
+        type: string
+      namespace:
+        type: string
+      nodeName:
+        type: string
+      resource:
+        $ref: '#/definitions/model.ResourceDetail'
+        type: object
+      status:
+        description: '@description 状态'
+        type: string
+    type: object
+  model.ResourceDetail:
+    properties:
+      cpuFree:
+        description: '@description cpu剩余量'
+        type: string
+      cpuNum:
+        description: '@description cpu数量'
+        type: string
+      cpuPercent:
+        description: '@description cpu剩余百分比'
+        type: string
+      cpuUse:
+        description: '@description cpu使用量'
+        type: string
+      memFree:
+        description: '@description 内存剩余量'
+        type: string
+      memPercent:
+        description: '@description 内使剩余量百分比'
+        type: string
+      memSize:
+        description: '@description 内存大小'
+        type: string
+      memUse:
+        description: '@description 内使用百分比'
+        type: string
+    type: object
+  model.ServiceDetail:
+    properties:
+      kind:
+        default: Service
+        description: '@description 资源类型'
+        type: string
+      name:
+        type: string
+      namespace:
+        type: string
+      spec:
+        type: string
+      status:
+        type: string
+    type: object
+  model.StatefulSetDetail:
+    properties:
+      kind:
+        default: StatefulSet
+        description: '@description 资源类型'
+        type: string
+      name:
+        type: string
+      namespace:
+        type: string
+      spec:
+        type: string
+      status:
+        type: string
+    type: object
+  protocol.Response:
+    properties:
+      data:
+        type: object
+      errmsg:
+        description: '@description 错误信息'
+        type: string
+      errno:
+        description: '@description 错误编号 -1 失败 0 成功'
+        type: integer
+      extr:
+        $ref: '#/definitions/protocol.extr'
+        type: object
+    type: object
+  protocol.extr:
+    properties:
+      error_stack:
+        type: string
+      inner_error:
+        type: string
+    type: object
+host: 127.0.0.1:7474
+info:
+  contact:
+    email: lgy10271416@gmail.com
+    name: API K8sManage
+    url: http://127.0.0.1:7475/docs/index.html
+  description: This is a K8sManage server
+  license:
+    name: K8sManage API 1.0
+    url: http://127.0.0.1:7475/docs/index.html
+  title: K8sManage API
+  version: "1.0"
+paths:
+  /cluster/v1/deployment:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 参数列表
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/cluster.ResourceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"errno":0,"errmsg":"","data":{"items":[]},"extr":{"inner_error":"","error_stack":""}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/cluster.DeploymentsResponse'
+              type: object
+      summary: 获取deployment
+  /cluster/v1/detail:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/cluster.ClusterResponse'
+              type: object
+      summary: 获取集群信息
+  /cluster/v1/namespace:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 命名空间名
+        in: body
+        name: params
+        schema:
+          $ref: '#/definitions/cluster.NameSpacesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/cluster.NameSpacesResponse'
+              type: object
+      summary: 获取命名空间信息
+  /cluster/v1/node:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 节点名
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/cluster.NodeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/cluster.NodeResponse'
+              type: object
+      summary: 获取节点信息
+  /cluster/v1/nodes:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}'
+          schema:
+            items:
+              allOf:
+              - $ref: '#/definitions/protocol.Response'
+              - properties:
+                  data:
+                    $ref: '#/definitions/model.NodeDetail'
+                type: object
+            type: array
+      summary: 获取所有节点信息
+  /cluster/v1/pod:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 命名空间名 名字
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/cluster.PodInfoRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/cluster.PodInfoResponse'
+              type: object
+      summary: 获取pod信息
+  /cluster/v1/pods:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 命名空间名
+        in: body
+        name: params
+        schema:
+          $ref: '#/definitions/cluster.PodsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/cluster.PodsResponse'
+              type: object
+      summary: 获取pod列表
+  /cluster/v1/service:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 参数列表
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/cluster.ResourceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"errno":0,"errmsg":"","data":{"items":[]},"extr":{"inner_error":"","error_stack":""}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/cluster.ServiceResponse'
+              type: object
+      summary: 获取service
+  /cluster/v1/statefulSet:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 参数列表
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/cluster.ResourceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"errno":0,"errmsg":"","data":{"items":[]},"extr":{"inner_error":"","error_stack":""}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/cluster.StatefulSetsResponse'
+              type: object
+      summary: 获取statefulSet
+  /resource/v1/namespace/create:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 命名空间名
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/deploy.NamespaceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}'
+          schema:
+            type: string
+      summary: 创建命名空间
+  /resource/v1/namespace/delete:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 命名空间名
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/deploy.NamespaceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}'
+          schema:
+            type: string
+      summary: 删除命名空间
+  /resource/v1/resource/delete:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: '资源对象 可选 Deployment | StatefulSet | Service '
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/deploy.DeleteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}'
+          schema:
+            type: string
+      summary: 删除资源
+  /resource/v1/resource/deploy:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 参数
+        in: body
+        name: kind
+        required: true
+        schema:
+          $ref: '#/definitions/deploy.DeployRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}'
+          schema:
+            type: string
+      summary: 部署资源
+  /resource/v1/resource/uploadDeploy:
+    post:
+      parameters:
+      - description: yaml文件
+        in: formData
+        name: resource
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/deploy.UploadResponse'
+              type: object
+      summary: 文件部署资源
+swagger: "2.0"

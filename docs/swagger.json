@@ -1,0 +1,1217 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a K8sManage server",
+        "title": "K8sManage API",
+        "contact": {
+            "name": "API K8sManage",
+            "url": "http://127.0.0.1:7475/docs/index.html",
+            "email": "lgy10271416@gmail.com"
+        },
+        "license": {
+            "name": "K8sManage API 1.0",
+            "url": "http://127.0.0.1:7475/docs/index.html"
+        },
+        "version": "1.0"
+    },
+    "host": "127.0.0.1:7474",
+    "paths": {
+        "/cluster/v1/deployment": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "获取deployment",
+                "parameters": [
+                    {
+                        "description": "参数列表",
+                        "name": "params",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/cluster.ResourceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"errno\":0,\"errmsg\":\"\",\"data\":{\"items\":[]},\"extr\":{\"inner_error\":\"\",\"error_stack\":\"\"}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/cluster.DeploymentsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/cluster/v1/detail": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "获取集群信息",
+                "responses": {
+                    "200": {
+                        "description": "{\"errno\":0,\"errmsg\":\"\",\"data\":{},\"extr\":{\"inner_error\":\"\",\"error_stack\":\"\"}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/cluster.ClusterResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/cluster/v1/namespace": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "获取命名空间信息",
+                "parameters": [
+                    {
+                        "description": "命名空间名",
+                        "name": "params",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/cluster.NameSpacesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"errno\":0,\"errmsg\":\"\",\"data\":{},\"extr\":{\"inner_error\":\"\",\"error_stack\":\"\"}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/cluster.NameSpacesResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/cluster/v1/node": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "获取节点信息",
+                "parameters": [
+                    {
+                        "description": "节点名",
+                        "name": "params",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/cluster.NodeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"errno\":0,\"errmsg\":\"\",\"data\":{},\"extr\":{\"inner_error\":\"\",\"error_stack\":\"\"}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/cluster.NodeResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/cluster/v1/nodes": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "获取所有节点信息",
+                "responses": {
+                    "200": {
+                        "description": "{\"errno\":0,\"errmsg\":\"\",\"data\":{},\"extr\":{\"inner_error\":\"\",\"error_stack\":\"\"}}",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "allOf": [
+                                    {
+                                        "$ref": "#/definitions/protocol.Response"
+                                    },
+                                    {
+                                        "type": "object",
+                                        "properties": {
+                                            "data": {
+                                                "$ref": "#/definitions/model.NodeDetail"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/cluster/v1/pod": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "获取pod信息",
+                "parameters": [
+                    {
+                        "description": "命名空间名 名字",
+                        "name": "params",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/cluster.PodInfoRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"errno\":0,\"errmsg\":\"\",\"data\":{},\"extr\":{\"inner_error\":\"\",\"error_stack\":\"\"}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/cluster.PodInfoResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/cluster/v1/pods": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "获取pod列表",
+                "parameters": [
+                    {
+                        "description": "命名空间名",
+                        "name": "params",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/cluster.PodsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"errno\":0,\"errmsg\":\"\",\"data\":{},\"extr\":{\"inner_error\":\"\",\"error_stack\":\"\"}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/cluster.PodsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/cluster/v1/service": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "获取service",
+                "parameters": [
+                    {
+                        "description": "参数列表",
+                        "name": "params",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/cluster.ResourceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"errno\":0,\"errmsg\":\"\",\"data\":{\"items\":[]},\"extr\":{\"inner_error\":\"\",\"error_stack\":\"\"}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/cluster.ServiceResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/cluster/v1/statefulSet": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "获取statefulSet",
+                "parameters": [
+                    {
+                        "description": "参数列表",
+                        "name": "params",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/cluster.ResourceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"errno\":0,\"errmsg\":\"\",\"data\":{\"items\":[]},\"extr\":{\"inner_error\":\"\",\"error_stack\":\"\"}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/cluster.StatefulSetsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/resource/v1/namespace/create": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "创建命名空间",
+                "parameters": [
+                    {
+                        "description": "命名空间名",
+                        "name": "params",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/deploy.NamespaceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"errno\":0,\"errmsg\":\"\",\"data\":{},\"extr\":{\"inner_error\":\"\",\"error_stack\":\"\"}}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/resource/v1/namespace/delete": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "删除命名空间",
+                "parameters": [
+                    {
+                        "description": "命名空间名",
+                        "name": "params",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/deploy.NamespaceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"errno\":0,\"errmsg\":\"\",\"data\":{},\"extr\":{\"inner_error\":\"\",\"error_stack\":\"\"}}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/resource/v1/resource/delete": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "删除资源",
+                "parameters": [
+                    {
+                        "description": "资源对象 可选 Deployment | StatefulSet | Service ",
+                        "name": "params",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/deploy.DeleteRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"errno\":0,\"errmsg\":\"\",\"data\":{},\"extr\":{\"inner_error\":\"\",\"error_stack\":\"\"}}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/resource/v1/resource/deploy": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "部署资源",
+                "parameters": [
+                    {
+                        "description": "参数",
+                        "name": "kind",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/deploy.DeployRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"errno\":0,\"errmsg\":\"\",\"data\":{},\"extr\":{\"inner_error\":\"\",\"error_stack\":\"\"}}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/resource/v1/resource/uploadDeploy": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "文件部署资源",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "yaml文件",
+                        "name": "resource",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"errno\":0,\"errmsg\":\"\",\"data\":{},\"extr\":{\"inner_error\":\"\",\"error_stack\":\"\"}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/deploy.UploadResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "cluster.ClusterResponse": {
+            "type": "object",
+            "properties": {
+                "cluster": {
+                    "type": "object",
+                    "$ref": "#/definitions/model.Cluster"
+                }
+            }
+        },
+        "cluster.DeploymentsResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "description": "@description 无状态资源列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.DeploymentDetail"
+                    }
+                }
+            }
+        },
+        "cluster.NameSpacesRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "@description 命名空间",
+                    "type": "string"
+                }
+            }
+        },
+        "cluster.NameSpacesResponse": {
+            "type": "object",
+            "properties": {
+                "exist": {
+                    "type": "boolean"
+                },
+                "namespaces": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.NamespaceDetail"
+                    }
+                }
+            }
+        },
+        "cluster.NodeRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "@description 节点名",
+                    "type": "string"
+                }
+            }
+        },
+        "cluster.NodeResponse": {
+            "type": "object",
+            "properties": {
+                "exist": {
+                    "description": "@description 是否存在",
+                    "type": "boolean"
+                },
+                "node": {
+                    "type": "object",
+                    "$ref": "#/definitions/model.NodeDetail"
+                }
+            }
+        },
+        "cluster.PodInfoRequest": {
+            "type": "object",
+            "properties": {
+                "namespace": {
+                    "description": "@description 命名空间",
+                    "type": "string"
+                },
+                "podName": {
+                    "description": "@description pod",
+                    "type": "string"
+                }
+            }
+        },
+        "cluster.PodInfoResponse": {
+            "type": "object",
+            "properties": {
+                "exist": {
+                    "description": "@description 是否存在",
+                    "type": "boolean"
+                },
+                "pod": {
+                    "description": "@description pod信息",
+                    "type": "object",
+                    "$ref": "#/definitions/model.PodDetail"
+                }
+            }
+        },
+        "cluster.PodsRequest": {
+            "type": "object",
+            "properties": {
+                "namespace": {
+                    "description": "@description 命名空间",
+                    "type": "string"
+                }
+            }
+        },
+        "cluster.PodsResponse": {
+            "type": "object",
+            "properties": {
+                "pods": {
+                    "description": "@description pods列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.PodDetail"
+                    }
+                }
+            }
+        },
+        "cluster.ResourceRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "@description 资源名称",
+                    "type": "string"
+                },
+                "namespace": {
+                    "description": "@description 命名空间",
+                    "type": "string"
+                }
+            }
+        },
+        "cluster.ServiceResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "description": "@description 有状态资源列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ServiceDetail"
+                    }
+                }
+            }
+        },
+        "cluster.StatefulSetsResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "description": "@description 有状态资源列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.StatefulSetDetail"
+                    }
+                }
+            }
+        },
+        "deploy.DeleteRequest": {
+            "type": "object",
+            "properties": {
+                "kind": {
+                    "description": "@description 资源类型 可选 Deployment | StatefulSet | Service",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "@description 资源名称",
+                    "type": "string"
+                },
+                "namespace": {
+                    "description": "@description 命名空间",
+                    "type": "string"
+                }
+            }
+        },
+        "deploy.DeployRequest": {
+            "type": "object",
+            "properties": {
+                "annotations": {
+                    "description": "@description 注释",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "args": {
+                    "description": "@description 初始参数",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "clusterIp": {
+                    "type": "string"
+                },
+                "command": {
+                    "description": "@description 容器启动执行的命令",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "createService": {
+                    "description": "@description ============   service   ==================\n@description 是否创建serice",
+                    "type": "boolean"
+                },
+                "envs": {
+                    "description": "@description 环境变量数据",
+                    "type": "string"
+                },
+                "image": {
+                    "description": "@description 镜像名称",
+                    "type": "string"
+                },
+                "imagePullPolicy": {
+                    "description": "@description 镜像拉去策略 Always | Never | IfNotPresent",
+                    "type": "string",
+                    "default": "IfNotPresent"
+                },
+                "kind": {
+                    "description": "@description  ========  Object  ===========\n@description 资源类型 可选 Deployment | StatefulSet | Service",
+                    "type": "string"
+                },
+                "matchLabels": {
+                    "description": "@description 上层spec标签",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "maxSurge": {
+                    "description": "@description 滚动升级时候,会优先启动的pod数量",
+                    "type": "integer",
+                    "default": 1
+                },
+                "maxUnavailable": {
+                    "description": "@description 滚动升级时候,最大的unavailable数量",
+                    "type": "integer",
+                    "default": 1
+                },
+                "name": {
+                    "description": "@description 服务名称",
+                    "type": "string"
+                },
+                "namespace": {
+                    "description": "@description 命名空间",
+                    "type": "string"
+                },
+                "nodeSelector": {
+                    "description": "@description 节点选择 node:node1",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "objectMetaLabels": {
+                    "description": "@description 资源",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "partition": {
+                    "description": "@description Partition",
+                    "type": "integer"
+                },
+                "podName": {
+                    "description": "@description ============  Containers  ==================\n@description pod名",
+                    "type": "string"
+                },
+                "podPort": {
+                    "description": "@description 容器暴露端口",
+                    "type": "string"
+                },
+                "replicas": {
+                    "description": "@description =========   spec   ============\n@description 副本数量",
+                    "type": "integer"
+                },
+                "resources": {
+                    "description": "@description 资源限制",
+                    "type": "string"
+                },
+                "serviceName": {
+                    "description": "@description service名",
+                    "type": "string"
+                },
+                "servicePorts": {
+                    "description": "@description 端口映射",
+                    "type": "string"
+                },
+                "serviceType": {
+                    "description": "@description 可选 ClusterIP | NodePort | LoadBalancer",
+                    "type": "string"
+                },
+                "statefulType": {
+                    "description": "@description ============= statefulSet  ================\n@description 有状态服务专用 可选 RollingUpdate | OnDelete",
+                    "type": "string"
+                },
+                "templateLabels": {
+                    "description": "@description =============  template  =============\n@description template标签",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "volumeMounts": {
+                    "description": "@description 目录挂载",
+                    "type": "string"
+                },
+                "volumes": {
+                    "description": "@description 外部目录映射",
+                    "type": "string"
+                },
+                "workingDir": {
+                    "description": "@description 工作目录",
+                    "type": "string"
+                }
+            }
+        },
+        "deploy.NamespaceRequest": {
+            "type": "object",
+            "properties": {
+                "namespace": {
+                    "description": "@description 命名空间",
+                    "type": "string"
+                }
+            }
+        },
+        "deploy.UploadResponse": {
+            "type": "object",
+            "properties": {
+                "file": {
+                    "description": "@description 文件名",
+                    "type": "string"
+                }
+            }
+        },
+        "model.Cluster": {
+            "type": "object",
+            "properties": {
+                "activePodNum": {
+                    "description": "@description 运行的pod数量",
+                    "type": "integer"
+                },
+                "namespaceDetail": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.NamespaceDetail"
+                    }
+                },
+                "namespaceNum": {
+                    "description": "@description 命名空间相关信息",
+                    "type": "integer"
+                },
+                "nodeNum": {
+                    "description": "@description 节点数量",
+                    "type": "integer"
+                },
+                "nodes": {
+                    "description": "@description 节点详情",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.NodeDetail"
+                    }
+                },
+                "podNum": {
+                    "description": "@description pod上线数量",
+                    "type": "integer"
+                },
+                "resource": {
+                    "description": "@description 集群总的指标情况",
+                    "type": "object",
+                    "$ref": "#/definitions/model.ResourceDetail"
+                },
+                "runNodeNum": {
+                    "description": "@description 正常运行的节点数量",
+                    "type": "integer"
+                }
+            }
+        },
+        "model.DeploymentDetail": {
+            "type": "object",
+            "properties": {
+                "kind": {
+                    "description": "@description 资源类型",
+                    "type": "string",
+                    "default": "Deployment"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "namespace": {
+                    "type": "string"
+                },
+                "spec": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.NamespaceDetail": {
+            "type": "object",
+            "properties": {
+                "createTime": {
+                    "type": "string"
+                },
+                "deployments": {
+                    "description": "@description 无状态资源",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.DeploymentDetail"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "services": {
+                    "description": "@description 服务资源",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ServiceDetail"
+                    }
+                },
+                "statefulSets": {
+                    "description": "@description 有状态资源",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.StatefulSetDetail"
+                    }
+                }
+            }
+        },
+        "model.NodeDetail": {
+            "type": "object",
+            "properties": {
+                "annotation": {
+                    "description": "@description 注释",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "clusterName": {
+                    "description": "@description 集群名",
+                    "type": "string"
+                },
+                "createTime": {
+                    "description": "@description 创建时间",
+                    "type": "string"
+                },
+                "dockVersion": {
+                    "description": "@description docker版本",
+                    "type": "string"
+                },
+                "hostIp": {
+                    "description": "@description 主机IP",
+                    "type": "string"
+                },
+                "imageNum": {
+                    "description": "@description 镜像数量",
+                    "type": "integer"
+                },
+                "isValid": {
+                    "description": "@description 是否有效",
+                    "type": "string"
+                },
+                "kernlVersion": {
+                    "description": "@description 内核版本",
+                    "type": "string"
+                },
+                "kuBeLetVersion": {
+                    "description": "@description Kubelet版本",
+                    "type": "string"
+                },
+                "kuProxyVersion": {
+                    "description": "@description Kubelet版本",
+                    "type": "string"
+                },
+                "label": {
+                    "description": "@description 主机标签",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "lastHeartbeatTime": {
+                    "description": "@description 最后一次心跳时间",
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "nodeID": {
+                    "description": "@description nodeId",
+                    "type": "string"
+                },
+                "podNum": {
+                    "description": "@description pod数量",
+                    "type": "integer"
+                },
+                "podRun": {
+                    "description": "@description 部署的pod总量",
+                    "type": "integer"
+                },
+                "podTotal": {
+                    "description": "@description 部署的pod总量",
+                    "type": "integer"
+                },
+                "pods": {
+                    "description": "@description pod列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.PodDetail"
+                    }
+                },
+                "resource": {
+                    "type": "object",
+                    "$ref": "#/definitions/model.ResourceDetail"
+                },
+                "role": {
+                    "description": "@description 角色",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "@description 状态",
+                    "type": "string"
+                },
+                "systemOs": {
+                    "description": "@description 操作系统",
+                    "type": "string"
+                },
+                "systemType": {
+                    "description": "@description 操作系统类型",
+                    "type": "string"
+                }
+            }
+        },
+        "model.PodDetail": {
+            "type": "object",
+            "properties": {
+                "annotation": {
+                    "description": "@description 注释",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "createTime": {
+                    "description": "@description 创建时间",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "label": {
+                    "description": "@description 主机标签",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "namespace": {
+                    "type": "string"
+                },
+                "nodeName": {
+                    "type": "string"
+                },
+                "resource": {
+                    "type": "object",
+                    "$ref": "#/definitions/model.ResourceDetail"
+                },
+                "status": {
+                    "description": "@description 状态",
+                    "type": "string"
+                }
+            }
+        },
+        "model.ResourceDetail": {
+            "type": "object",
+            "properties": {
+                "cpuFree": {
+                    "description": "@description cpu剩余量",
+                    "type": "string"
+                },
+                "cpuNum": {
+                    "description": "@description cpu数量",
+                    "type": "string"
+                },
+                "cpuPercent": {
+                    "description": "@description cpu剩余百分比",
+                    "type": "string"
+                },
+                "cpuUse": {
+                    "description": "@description cpu使用量",
+                    "type": "string"
+                },
+                "memFree": {
+                    "description": "@description 内存剩余量",
+                    "type": "string"
+                },
+                "memPercent": {
+                    "description": "@description 内使剩余量百分比",
+                    "type": "string"
+                },
+                "memSize": {
+                    "description": "@description 内存大小",
+                    "type": "string"
+                },
+                "memUse": {
+                    "description": "@description 内使用百分比",
+                    "type": "string"
+                }
+            }
+        },
+        "model.ServiceDetail": {
+            "type": "object",
+            "properties": {
+                "kind": {
+                    "description": "@description 资源类型",
+                    "type": "string",
+                    "default": "Service"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "namespace": {
+                    "type": "string"
+                },
+                "spec": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.StatefulSetDetail": {
+            "type": "object",
+            "properties": {
+                "kind": {
+                    "description": "@description 资源类型",
+                    "type": "string",
+                    "default": "StatefulSet"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "namespace": {
+                    "type": "string"
+                },
+                "spec": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "protocol.Response": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "object"
+                },
+                "errmsg": {
+                    "description": "@description 错误信息",
+                    "type": "string"
+                },
+                "errno": {
+                    "description": "@description 错误编号 -1 失败 0 成功",
+                    "type": "integer"
+                },
+                "extr": {
+                    "type": "object",
+                    "$ref": "#/definitions/protocol.extr"
+                }
+            }
+        },
+        "protocol.extr": {
+            "type": "object",
+            "properties": {
+                "error_stack": {
+                    "type": "string"
+                },
+                "inner_error": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

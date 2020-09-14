@@ -1,0 +1,16 @@
+# 开发模式
+dev = true
+
+# 项目根路径
+#root = ""
+
+# 日志
+log_path = "config/seelog.xml"
+
+# 监听地址端口[ip:port]
+address = ":7474"
+
+# 详细配置
+cfg_path = "config/cfg.toml"
+
+k8s_config = ""
