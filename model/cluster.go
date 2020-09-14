@@ -98,18 +98,22 @@ type ResourceDetail struct {
 	CpuNum string `json:"cpuNum,omitempty"`
 	// @description cpu剩余量
 	CpuFree string `json:"cpuFree,omitempty"`
-	// @description cpu剩余百分比
-	CpuPercent string `json:"cpuPercent,omitempty"`
 	// @description cpu使用量
 	CpuUse string `json:"cpuUse,omitempty"`
+	// @description cpu剩余百分比
+	CpuFreePercent string `json:"cpuFreePercent,omitempty"`
+	// @description cpu使用量百分比
+	CpuUsePercent string `json:"cpuUsePercent,omitempty"`
 	// @description 内存大小
 	MemSize string `json:"memSize,omitempty"`
 	// @description 内存剩余量
 	MemFree string `json:"memFree,omitempty"`
+	// @description 内存使用量
+	MemUse string `json:"memFree,omitempty"`
 	// @description 内使剩余量百分比
-	MemPercent string `json:"memPercent,omitempty"`
+	MemFreePercent string `json:"memFreePercent,omitempty"`
 	// @description 内使用百分比
-	MemUse string `json:"memUse,omitempty"`
+	MemUsePercent string `json:"memUsePercent,omitempty"`
 }
 
 type NamespaceDetail struct {

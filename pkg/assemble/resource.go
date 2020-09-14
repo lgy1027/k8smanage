@@ -25,14 +25,16 @@ func AssembleResourceList(nodeMetrics []v1beta1.NodeMetrics, nodes []v1.Node) []
 				useMemNumValue := decimal.NewFromInt(userMemNum)
 				useMemNumValue = useMemNumValue.Div(decimal.NewFromInt(1024)).Div(decimal.NewFromInt(1024)).DivRound(decimal.NewFromInt(1024), 2)
 				resourceList = append(resourceList, model.ResourceDetail{
-					CpuNum:     cpuNumValue.String(),
-					CpuFree:    cpuNumValue.Sub(useCpuNumValue).String(),
-					CpuPercent: cpuNumValue.Sub(useCpuNumValue).DivRound(cpuNumValue, 2).String(),
-					CpuUse:     useCpuNumValue.DivRound(cpuNumValue, 2).String(),
-					MemSize:    memNumValue.String(),
-					MemFree:    memNumValue.Sub(useMemNumValue).String(),
-					MemPercent: memNumValue.Sub(useMemNumValue).DivRound(memNumValue, 2).String(),
-					MemUse:     useMemNumValue.DivRound(memNumValue, 2).String(),
+					CpuNum:         cpuNumValue.String(),
+					CpuFree:        cpuNumValue.Sub(useCpuNumValue).String(),
+					CpuUse:         useCpuNumValue.String(),
+					CpuFreePercent: cpuNumValue.Sub(useCpuNumValue).DivRound(cpuNumValue, 2).String(),
+					CpuUsePercent:  useCpuNumValue.DivRound(cpuNumValue, 2).String(),
+					MemSize:        memNumValue.String(),
+					MemFree:        memNumValue.Sub(useMemNumValue).String(),
+					MemUse:         useMemNumValue.String(),
+					MemFreePercent: memNumValue.Sub(useMemNumValue).DivRound(memNumValue, 2).String(),
+					MemUsePercent:  useMemNumValue.DivRound(memNumValue, 2).String(),
 				})
 				break
 			}
@@ -56,14 +58,16 @@ func AssembleResource(metric v1beta1.NodeMetrics, node v1.Node) model.ResourceDe
 	useMemNumValue := decimal.NewFromInt(userMemNum)
 	useMemNumValue = useMemNumValue.Div(decimal.NewFromInt(1024)).Div(decimal.NewFromInt(1024)).DivRound(decimal.NewFromInt(1024), 2)
 	resource = model.ResourceDetail{
-		CpuNum:     cpuNumValue.String(),
-		CpuFree:    cpuNumValue.Sub(useCpuNumValue).String(),
-		CpuPercent: cpuNumValue.Sub(useCpuNumValue).DivRound(cpuNumValue, 2).String(),
-		CpuUse:     useCpuNumValue.DivRound(cpuNumValue, 2).String(),
-		MemSize:    memNumValue.String(),
-		MemFree:    memNumValue.Sub(useMemNumValue).String(),
-		MemPercent: memNumValue.Sub(useMemNumValue).DivRound(memNumValue, 2).String(),
-		MemUse:     useMemNumValue.DivRound(memNumValue, 2).String(),
+		CpuNum:         cpuNumValue.String(),
+		CpuFree:        cpuNumValue.Sub(useCpuNumValue).String(),
+		CpuUse:         useCpuNumValue.String(),
+		CpuFreePercent: cpuNumValue.Sub(useCpuNumValue).DivRound(cpuNumValue, 2).String(),
+		CpuUsePercent:  useCpuNumValue.DivRound(cpuNumValue, 2).String(),
+		MemSize:        memNumValue.String(),
+		MemFree:        memNumValue.Sub(useMemNumValue).String(),
+		MemUse:         useMemNumValue.String(),
+		MemFreePercent: memNumValue.Sub(useMemNumValue).DivRound(memNumValue, 2).String(),
+		MemUsePercent:  useMemNumValue.DivRound(memNumValue, 2).String(),
 	}
 	return resource
 }

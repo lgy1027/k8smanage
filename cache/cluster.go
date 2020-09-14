@@ -16,21 +16,15 @@ import (
 )
 
 var (
-	node        k8s2.Base
-	namespace   *k8s2.Ns
-	pod         k8s2.Base
-	deployment  *k8s2.Deployment
-	statefulSet *k8s2.Sf
-	service     *k8s2.Sv
+	node      k8s2.Base
+	namespace *k8s2.Ns
+	pod       k8s2.Base
 )
 
 func init() {
 	node = k8s2.NewNode()
 	namespace = k8s2.NewNs()
 	pod = k8s2.NewPod()
-	deployment = k8s2.NewDeploy()
-	statefulSet = k8s2.NewStateFulSet()
-	service = k8s2.NewSv()
 }
 
 func CacheCluster() {
@@ -96,10 +90,7 @@ func GetClusterData() *model.Cluster {
 	})
 	wg.Wait()
 	var (
-		cpu    float64
-		mem    float64
-		useCpu float64
-		useMem float64
+		cpu, mem, useCpu, useMem float64
 	)
 	if len(cluster.Nodes) > 0 {
 		for _, node := range cluster.Nodes {
