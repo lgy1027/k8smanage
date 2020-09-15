@@ -5,6 +5,7 @@ import (
 	"fmt"
 	log "github.com/cihub/seelog"
 	"github.com/pkg/errors"
+	"relaper.com/kubemanage/inital"
 	k8s2 "relaper.com/kubemanage/k8s"
 	"relaper.com/kubemanage/utils"
 )
@@ -215,5 +216,6 @@ func (dm *deployService) CreateNs(ctx context.Context, req *NamespaceRequest) (*
 func (dm *deployService) DeleteNs(ctx context.Context, req *NamespaceRequest) (*NamespaceResponse, error) {
 	err := dm.Namespace.Delete(req.Namespace, "")
 	err = k8s2.PrintErr(err)
+	_ = inital.GetGlobal().GetCache().Del(utils.NAMESPACE_PREFIX_KEY)
 	return nil, err
 }

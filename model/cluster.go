@@ -81,6 +81,12 @@ type PodDetail struct {
 	CreateTime string `json:"createTime,omitempty"`
 	// @description 主机标签
 	Label map[string]string `json:"label,omitempty"`
+	// @description 重启次数
+	RestartCount int32 `json:"restartCount,omitempty"`
+	// @description 宿主机地址
+	HostIp string `json:"hostIp,omitempty"`
+	// @description 容器IP
+	PodIp string `json:"podIp,omitempty"`
 	// @description 注释
 	Annotation map[string]string `json:"annotation,omitempty"`
 	Resource   ResourceDetail    `json:"resource,omitempty"`

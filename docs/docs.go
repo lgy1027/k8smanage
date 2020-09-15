@@ -1083,6 +1083,10 @@ var doc = `{
                     "description": "@description 创建时间",
                     "type": "string"
                 },
+                "hostIp": {
+                    "description": "@description 宿主机地址",
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -1102,9 +1106,17 @@ var doc = `{
                 "nodeName": {
                     "type": "string"
                 },
+                "podIp": {
+                    "description": "@description 容器IP",
+                    "type": "string"
+                },
                 "resource": {
                     "type": "object",
                     "$ref": "#/definitions/model.ResourceDetail"
+                },
+                "restartCount": {
+                    "description": "@description 重启次数",
+                    "type": "integer"
                 },
                 "status": {
                     "description": "@description 状态 可选 Pending：正在启动 Running：运行中 Succeeded：部署成功未启动 Failed：失败 Unknown：未知",

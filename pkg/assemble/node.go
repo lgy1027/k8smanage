@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func AssembleNodes(nodes []v1.Node, pods []v1.Pod, nodeMetrics []v1beta1.NodeMetrics) []model.NodeDetail {
+func AssembleNodes(nodes []v1.Node, pods []v1.Pod, nodeMetrics []v1beta1.NodeMetrics, podMetricsList []v1beta1.PodMetrics) []model.NodeDetail {
 	role := func(label map[string]string) string {
 		role := ""
 		for k := range label {
@@ -33,7 +33,7 @@ func AssembleNodes(nodes []v1.Node, pods []v1.Pod, nodeMetrics []v1beta1.NodeMet
 		)
 		if len(pods) > 0 {
 			active, total = GetPodNum(node.Name, pods)
-			podsDetail = AssemblePod(node.GetName(), pods)
+			podsDetail = AssemblePod(node.GetName(), pods, podMetricsList)
 		}
 		resource := model.ResourceDetail{}
 		if len(nodeMetrics) > 0 {

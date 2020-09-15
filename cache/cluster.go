@@ -5,8 +5,6 @@ import (
 	log "github.com/cihub/seelog"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/metrics/pkg/apis/metrics/v1beta1"
 	"relaper.com/kubemanage/inital"
 	k8s2 "relaper.com/kubemanage/k8s"
 	"relaper.com/kubemanage/model"
@@ -86,18 +84,18 @@ func GetClusterData() *model.Cluster {
 		if err != nil {
 			log.Debug("获取Pod列表失败，err:", err.Error())
 		}
-		metricsList := make([]v1beta1.NodeMetrics, 0)
-		metrics := inital.GetGlobal().GetMetricsClient()
-		nodeMetricsList, err := metrics.MetricsV1beta1().NodeMetricses().List(metav1.ListOptions{})
+		nodeMetricsList, err := k8s2.GetNodeListMetrics()
 		if err != nil {
-			metricsList = nil
 			log.Debug("获取节点指标失败，err:", err.Error())
-		} else {
-			metricsList = nodeMetricsList.Items
+		}
+
+		podMetrics, err := k8s2.GetPodListMetrics("")
+		if err != nil {
+			log.Debug("获取pod指标失败，err:", err.Error())
 		}
 
 		podsList := pods.(*v1.PodList).Items
-		nodeDetailList := assemble.AssembleNodes(nodeList, podsList, metricsList)
+		nodeDetailList := assemble.AssembleNodes(nodeList, podsList, nodeMetricsList, podMetrics)
 		for _, node := range nodeDetailList {
 			if node.Status == "Ready" {
 				cluster.RunNodeNum++

@@ -132,6 +132,10 @@ func main() {
 		}
 	}
 
+	podsMetrics, err := mc.MetricsV1beta1().PodMetricses("istio-system").Get("jaeger-operator-bdbb4954b-9zmnt", metav1.GetOptions{})
+	fmt.Println(err)
+	fmt.Println(podsMetrics.Containers[0].Usage.Memory().Value() / 1024 / 1024)
+	fmt.Println(podsMetrics.Containers[0].Usage.Cpu().MilliValue())
 	fmt.Println()
 
 	//mc.MetricsV1beta1().PodMetricses(metav1.NamespaceAll).List(metav1.ListOptions{})

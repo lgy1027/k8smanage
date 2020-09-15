@@ -8,7 +8,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	k8serror "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/metrics/pkg/apis/metrics/v1beta1"
 	app "relaper.com/kubemanage/cache"
 	"relaper.com/kubemanage/inital"
@@ -98,13 +97,10 @@ func (cs *clusterService) Nodes(ctx context.Context, req *NodesRequest) (*NodesR
 	nodeList := nodes.(*v1.NodeList).Items
 	var (
 		podsList []v1.Pod
-		metrics  []v1beta1.NodeMetrics
 	)
-	metricsList, err := inital.GetGlobal().GetMetricsClient().MetricsV1beta1().NodeMetricses().List(metav1.ListOptions{})
+	nodeMetricsList, err := k8s2.GetNodeListMetrics()
 	if err != nil {
 		log.Debugf("Method [Nodes] = > Get NodeMetrics is err:%v", err.Error())
-	} else {
-		metrics = metricsList.Items
 	}
 	pods, err := cs.pod.List("")
 	if err != nil {
@@ -113,7 +109,11 @@ func (cs *clusterService) Nodes(ctx context.Context, req *NodesRequest) (*NodesR
 		podList := pods.(*v1.PodList)
 		podsList = podList.Items
 	}
-	nodeDetail := assemble.AssembleNodes(nodeList, podsList, metrics)
+	podMetricsList, err := k8s2.GetPodListMetrics("")
+	if err != nil {
+		log.Debug("获取pod指标失败，err:", err.Error())
+	}
+	nodeDetail := assemble.AssembleNodes(nodeList, podsList, nodeMetricsList, podMetricsList)
 	return &NodesResponse{
 		NodeList: nodeDetail,
 	}, nil
@@ -141,11 +141,11 @@ func (cs *clusterService) Node(ctx context.Context, req *NodeRequest) (*NodeResp
 		podsList []v1.Pod
 		metrics  []v1beta1.NodeMetrics
 	)
-	metricsList, err := inital.GetGlobal().GetMetricsClient().MetricsV1beta1().NodeMetricses().List(metav1.ListOptions{})
+	nodeMetric, err := k8s2.GetNodeMetrics(req.Name)
 	if err != nil {
-		log.Debugf("Method [Nodes] = > Get NodeMetrics is err:%v", err.Error())
+		log.Debugf("Method [node] = > Get NodeMetrics is err:%v", err.Error())
 	} else {
-		metrics = metricsList.Items
+		metrics = append(metrics, *nodeMetric)
 	}
 	pods, err := cs.pod.List("")
 	if err != nil {
@@ -154,7 +154,11 @@ func (cs *clusterService) Node(ctx context.Context, req *NodeRequest) (*NodeResp
 		podList := pods.(*v1.PodList)
 		podsList = podList.Items
 	}
-	nodeDetail := assemble.AssembleNodes([]v1.Node{*nodeInfo}, podsList, metrics)
+	podMetricsList, err := k8s2.GetPodListMetrics("")
+	if err != nil {
+		log.Debugf("Method [Node] = > GetPodListMetrics is err:%v", err.Error())
+	}
+	nodeDetail := assemble.AssembleNodes([]v1.Node{*nodeInfo}, podsList, metrics, podMetricsList)
 	return &NodeResponse{
 		Exist: true,
 		Node:  nodeDetail[0],
@@ -261,7 +265,14 @@ func (cs *clusterService) PodInfo(ctx context.Context, req *PodInfoRequest) (*Po
 		return nil, errors.New("内部错误")
 	}
 	podInfo := pod.(*v1.Pod)
-	podDetail := assemble.AssemblePod(podInfo.Spec.NodeName, []v1.Pod{*podInfo})
+	podListMetric := make([]v1beta1.PodMetrics, 0)
+	podMetric, err := k8s2.GetPodMetrics(req.NameSpace, req.PodName)
+	if err != nil {
+		log.Debug("PodInfo: 获取pod指标信息失败。err:", err.Error())
+	} else {
+		podListMetric = append(podListMetric, *podMetric)
+	}
+	podDetail := assemble.AssemblePod(podInfo.Spec.NodeName, []v1.Pod{*podInfo}, podListMetric)
 	return &PodInfoResponse{
 		Pod:   podDetail[0],
 		Exist: true,
@@ -284,7 +295,11 @@ func (cs *clusterService) Pods(ctx context.Context, req *PodsRequest) (*PodsResp
 		return nil, errors.New("内部错误")
 	}
 	items := pods.(*v1.PodList).Items
-	podDetail := assemble.AssemblePod("", items)
+	podListMetric, err := k8s2.GetPodListMetrics(req.NameSpace)
+	if err != nil {
+		log.Debug("获取pod监控资源失败，err:", err.Error())
+	}
+	podDetail := assemble.AssemblePod("", items, podListMetric)
 	return &PodsResponse{
 		Pods: podDetail,
 	}, nil
