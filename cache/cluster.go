@@ -175,6 +175,7 @@ func GetDetailForRange(namespace v1.Namespace) model.NamespaceDetail {
 	namespaceDetail := model.NamespaceDetail{
 		Name:       namespace.GetName(),
 		CreateTime: namespace.GetCreationTimestamp().String(),
+		Status:     string(namespace.Status.Phase),
 	}
 	name := namespace.GetName()
 	//var wg tools.WaitGroupWrapper

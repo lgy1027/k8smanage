@@ -194,11 +194,13 @@ func (cs *clusterService) NameSpaces(ctx context.Context, req *NameSpacesRequest
 			}
 		} else {
 			namespaceDetail = app.GetNamespaceDetail(req.Namespace)
-			jsonData, err := json.Marshal(namespaceDetail)
-			if err != nil {
-				log.Debug("json转换失败,err:", err.Error())
-			} else {
-				_ = inital.GetGlobal().GetCache().Set(utils.NAMESPACE_PREFIX_KEY+req.Namespace, jsonData, utils.NAMESPACE_TIME)
+			if len(namespaceDetail) > 0 {
+				jsonData, err := json.Marshal(namespaceDetail)
+				if err != nil {
+					log.Debug("json转换失败,err:", err.Error())
+				} else {
+					_ = inital.GetGlobal().GetCache().Set(utils.NAMESPACE_PREFIX_KEY+req.Namespace, jsonData, utils.NAMESPACE_TIME)
+				}
 			}
 		}
 	}

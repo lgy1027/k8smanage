@@ -75,7 +75,7 @@ type PodDetail struct {
 	Id        string `json:"id,omitempty"`
 	NodeName  string `json:"nodeName,omitempty"`
 	Namespace string `json:"namespace,omitempty"`
-	// @description 状态
+	// @description 状态 可选 Pending：正在启动 Running：运行中 Succeeded：部署成功未启动 Failed：失败 Unknown：未知
 	Status string `json:"status,omitempty"`
 	// @description 创建时间
 	CreateTime string `json:"createTime,omitempty"`
@@ -119,6 +119,8 @@ type ResourceDetail struct {
 type NamespaceDetail struct {
 	Name       string `json:"name,omitempty"`
 	CreateTime string `json:"createTime,omitempty"`
+	// @description 状态 可选  Active： 正常使用   Terminating：正在终止
+	Status string `json:"status,omitempty"`
 	// @description 无状态资源
 	DeploymentList []DeploymentDetail `json:"deployments,omitempty"`
 	// @description 有状态资源

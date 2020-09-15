@@ -957,6 +957,10 @@ var doc = `{
                     "items": {
                         "$ref": "#/definitions/model.StatefulSetDetail"
                     }
+                },
+                "status": {
+                    "description": "@description 状态 可选  Active： 正常使用   Terminating：正在终止",
+                    "type": "string"
                 }
             }
         },
@@ -1103,7 +1107,7 @@ var doc = `{
                     "$ref": "#/definitions/model.ResourceDetail"
                 },
                 "status": {
-                    "description": "@description 状态",
+                    "description": "@description 状态 可选 Pending：正在启动 Running：运行中 Succeeded：部署成功未启动 Failed：失败 Unknown：未知",
                     "type": "string"
                 }
             }
