@@ -17,8 +17,8 @@ type Cluster struct {
 	// @description 运行的pod数量
 	ActivePodNum int64 `json:"activePodNum,omitempty"`
 	// @description 命名空间相关信息
-	NameSpaceNum    int               `json:"namespaceNum,omitempty"`
-	NamespaceDetail []NamespaceDetail `json:"namespaceDetail,omitempty"`
+	NameSpaceNum int `json:"namespaceNum,omitempty"`
+	//NamespaceDetail []NamespaceDetail `json:"namespaceDetail,omitempty"`
 	// @description 集群总的指标情况
 	Resource ResourceDetail `json:"resource,omitempty"`
 }
@@ -109,7 +109,7 @@ type ResourceDetail struct {
 	// @description 内存剩余量
 	MemFree string `json:"memFree,omitempty"`
 	// @description 内存使用量
-	MemUse string `json:"memFree,omitempty"`
+	MemUse string `json:"memUse,omitempty"`
 	// @description 内使剩余量百分比
 	MemFreePercent string `json:"memFreePercent,omitempty"`
 	// @description 内使用百分比

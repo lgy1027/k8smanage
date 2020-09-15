@@ -40,6 +40,9 @@ const (
 )
 
 const (
-	CLUSTER_PREFIX_KEY  = "cluster_key"
+	CLUSTER_PREFIX_KEY  = "cluster_key_"
 	CLUSTER_DETAIL_TIME = 600
+
+	NAMESPACE_PREFIX_KEY = "namespace_key_"
+	NAMESPACE_TIME       = 600
 )

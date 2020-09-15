@@ -62,12 +62,14 @@ func (cs *clusterService) Cluster(ctx context.Context, req *ClusterRequest) (*Cl
 	val, exist, err := inital.GetGlobal().GetCache().Get(utils.CLUSTER_PREFIX_KEY)
 	if err != nil {
 		log.Debug("从缓存获取信息失败,err:", err.Error())
+		clusterDetail = app.GetClusterData()
 	} else {
 		if exist {
 			err = json.Unmarshal([]byte(val), clusterDetail)
 			if err != nil {
 				log.Debug("序列化失败,err:", err.Error())
 			}
+			clusterDetail = app.GetClusterData()
 		} else {
 			clusterDetail = app.GetClusterData()
 			jsonData, err := json.Marshal(clusterDetail)
@@ -166,42 +168,75 @@ func (cs *clusterService) Node(ctx context.Context, req *NodeRequest) (*NodeResp
 // @Success 200 {object} protocol.Response{data=NameSpacesResponse} "{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}"
 // @Router /cluster/v1/namespace [post]
 func (cs *clusterService) NameSpaces(ctx context.Context, req *NameSpacesRequest) (*NameSpacesResponse, error) {
+	resp := &NameSpacesResponse{}
 	namespaceDetail := make([]model.NamespaceDetail, 0)
-	if req.Name == "" {
-		namespaces, err := cs.namespace.List("")
-		if err != nil {
-			return nil, errors2.WithTipMessage(err, "获取命名空间列表失败")
+	val, exist, err := inital.GetGlobal().GetCache().Get(utils.NAMESPACE_PREFIX_KEY + req.Name)
+	if err != nil {
+		log.Debug("从缓存获取信息失败,err:", err.Error())
+		resp.Namespaces = app.GetNamespaceDetail(req.Name)
+	} else {
+		if exist {
+			if req.Name == "" {
+				err = json.Unmarshal([]byte(val), &namespaceDetail)
+				if err != nil {
+					log.Debug("json转换失败,err:", err.Error())
+					namespaceDetail = app.GetNamespaceDetail(req.Name)
+				}
+			} else {
+				ns := model.NamespaceDetail{}
+				err = json.Unmarshal([]byte(val), &ns)
+				if err == nil {
+					namespaceDetail = append(namespaceDetail, ns)
+				} else {
+					log.Debug("json转换失败,err:", err.Error())
+					namespaceDetail = app.GetNamespaceDetail(req.Name)
+				}
+			}
+		} else {
+			namespaceDetail = app.GetNamespaceDetail(req.Name)
+			jsonData, err := json.Marshal(namespaceDetail)
+			if err != nil {
+				log.Debug("json转换失败,err:", err.Error())
+			} else {
+				_ = inital.GetGlobal().GetCache().Set(utils.NAMESPACE_PREFIX_KEY+req.Name, jsonData, utils.NAMESPACE_TIME)
+			}
 		}
-		items := namespaces.(*v1.NamespaceList).Items
-		wg := sync.WaitGroup{}
-		for _, ns := range items {
-			wg.Add(1)
-			go func(ns v1.Namespace) {
-				namespaceDetail = append(namespaceDetail, cs.GetDetailForRange(ns))
-				wg.Done()
-			}(ns)
-			//namespaceDetail = append(namespaceDetail,cs.GetDetailForRange(ns))
-		}
-		wg.Wait()
-		return &NameSpacesResponse{
-			Exist:      true,
-			Namespaces: namespaceDetail,
-		}, nil
 	}
-	namespace, err := cs.namespace.Get(req.Name, "")
-	if k8serror.IsNotFound(err) {
-		return &NameSpacesResponse{
-			Exist: false,
-		}, nil
-	} else if statusError, isStatus := err.(*k8serror.StatusError); isStatus {
-		return nil, errors.New(statusError.ErrStatus.Message)
-	} else if err != nil {
-		return nil, errors.New("内部错误")
-	}
-	ns := namespace.(*v1.Namespace)
-	namespaceDetail = append(namespaceDetail, cs.GetDetailForRange(*ns))
+	//namespaceDetail := make([]model.NamespaceDetail, 0)
+	//if req.Name == "" {
+	//	namespaces, err := cs.namespace.List("")
+	//	if err != nil {
+	//		return nil, errors2.WithTipMessage(err, "获取命名空间列表失败")
+	//	}
+	//	items := namespaces.(*v1.NamespaceList).Items
+	//	wg := sync.WaitGroup{}
+	//	for _, ns := range items {
+	//		wg.Add(1)
+	//		go func(ns v1.Namespace) {
+	//			namespaceDetail = append(namespaceDetail, cs.GetDetailForRange(ns))
+	//			wg.Done()
+	//		}(ns)
+	//		//namespaceDetail = append(namespaceDetail,cs.GetDetailForRange(ns))
+	//	}
+	//	wg.Wait()
+	//	return &NameSpacesResponse{
+	//		Exist:      true,
+	//		Namespaces: namespaceDetail,
+	//	}, nil
+	//}
+	//namespace, err := cs.namespace.Get(req.Name, "")
+	//if k8serror.IsNotFound(err) {
+	//	return &NameSpacesResponse{
+	//		Exist: false,
+	//	}, nil
+	//} else if statusError, isStatus := err.(*k8serror.StatusError); isStatus {
+	//	return nil, errors.New(statusError.ErrStatus.Message)
+	//} else if err != nil {
+	//	return nil, errors.New("内部错误")
+	//}
+	//ns := namespace.(*v1.Namespace)
+	//namespaceDetail = append(namespaceDetail, cs.GetDetailForRange(*ns))
 	return &NameSpacesResponse{
-		Exist:      true,
 		Namespaces: namespaceDetail,
 	}, nil
 }

@@ -567,7 +567,7 @@ var doc = `{
             "type": "object",
             "properties": {
                 "name": {
-                    "description": "@description 命名空间",
+                    "description": "@description 命名空间 非必填",
                     "type": "string"
                 }
             }
@@ -575,9 +575,6 @@ var doc = `{
         "cluster.NameSpacesResponse": {
             "type": "object",
             "properties": {
-                "exist": {
-                    "type": "boolean"
-                },
                 "namespaces": {
                     "type": "array",
                     "items": {
@@ -879,12 +876,6 @@ var doc = `{
                     "description": "@description 运行的pod数量",
                     "type": "integer"
                 },
-                "namespaceDetail": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.NamespaceDetail"
-                    }
-                },
                 "namespaceNum": {
                     "description": "@description 命名空间相关信息",
                     "type": "integer"
@@ -905,7 +896,7 @@ var doc = `{
                     "type": "integer"
                 },
                 "resource": {
-                    "description": "@description 集群总的指标情况",
+                    "description": "NamespaceDetail []NamespaceDetail ` + "`" + `json:\"namespaceDetail,omitempty\"` + "`" + `\n@description 集群总的指标情况",
                     "type": "object",
                     "$ref": "#/definitions/model.ResourceDetail"
                 },
@@ -1124,23 +1115,27 @@ var doc = `{
                     "description": "@description cpu剩余量",
                     "type": "string"
                 },
-                "cpuNum": {
-                    "description": "@description cpu数量",
+                "cpuFreePercent": {
+                    "description": "@description cpu剩余百分比",
                     "type": "string"
                 },
-                "cpuPercent": {
-                    "description": "@description cpu剩余百分比",
+                "cpuNum": {
+                    "description": "@description cpu数量",
                     "type": "string"
                 },
                 "cpuUse": {
                     "description": "@description cpu使用量",
                     "type": "string"
                 },
+                "cpuUsePercent": {
+                    "description": "@description cpu使用量百分比",
+                    "type": "string"
+                },
                 "memFree": {
                     "description": "@description 内存剩余量",
                     "type": "string"
                 },
-                "memPercent": {
+                "memFreePercent": {
                     "description": "@description 内使剩余量百分比",
                     "type": "string"
                 },
@@ -1149,6 +1144,10 @@ var doc = `{
                     "type": "string"
                 },
                 "memUse": {
+                    "description": "@description 内存使用量",
+                    "type": "string"
+                },
+                "memUsePercent": {
                     "description": "@description 内使用百分比",
                     "type": "string"
                 }

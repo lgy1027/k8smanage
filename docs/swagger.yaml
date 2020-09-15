@@ -16,13 +16,11 @@ definitions:
   cluster.NameSpacesRequest:
     properties:
       name:
-        description: '@description 命名空间'
+        description: '@description 命名空间 非必填'
         type: string
     type: object
   cluster.NameSpacesResponse:
     properties:
-      exist:
-        type: boolean
       namespaces:
         items:
           $ref: '#/definitions/model.NamespaceDetail'
@@ -248,10 +246,6 @@ definitions:
       activePodNum:
         description: '@description 运行的pod数量'
         type: integer
-      namespaceDetail:
-        items:
-          $ref: '#/definitions/model.NamespaceDetail'
-        type: array
       namespaceNum:
         description: '@description 命名空间相关信息'
         type: integer
@@ -268,7 +262,9 @@ definitions:
         type: integer
       resource:
         $ref: '#/definitions/model.ResourceDetail'
-        description: '@description 集群总的指标情况'
+        description: |-
+          NamespaceDetail []NamespaceDetail `json:"namespaceDetail,omitempty"`
+          @description 集群总的指标情况
         type: object
       runNodeNum:
         description: '@description 正常运行的节点数量'
@@ -423,25 +419,31 @@ definitions:
       cpuFree:
         description: '@description cpu剩余量'
         type: string
+      cpuFreePercent:
+        description: '@description cpu剩余百分比'
+        type: string
       cpuNum:
         description: '@description cpu数量'
-        type: string
-      cpuPercent:
-        description: '@description cpu剩余百分比'
         type: string
       cpuUse:
         description: '@description cpu使用量'
         type: string
+      cpuUsePercent:
+        description: '@description cpu使用量百分比'
+        type: string
       memFree:
         description: '@description 内存剩余量'
         type: string
-      memPercent:
+      memFreePercent:
         description: '@description 内使剩余量百分比'
         type: string
       memSize:
         description: '@description 内存大小'
         type: string
       memUse:
+        description: '@description 内存使用量'
+        type: string
+      memUsePercent:
         description: '@description 内使用百分比'
         type: string
     type: object

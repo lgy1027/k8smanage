@@ -44,7 +44,7 @@ type NodeResponse struct {
 }
 
 type NameSpacesRequest struct {
-	// @description 命名空间
+	// @description 命名空间 非必填
 	Name string `json:"name"`
 }
 
@@ -54,7 +54,6 @@ func (r *NameSpacesRequest) Validate() error {
 }
 
 type NameSpacesResponse struct {
-	Exist      bool                    `json:"exist"`
 	Namespaces []model.NamespaceDetail `json:"namespaces,omitempty"`
 }
 
