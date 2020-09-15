@@ -15,7 +15,7 @@ definitions:
     type: object
   cluster.NameSpacesRequest:
     properties:
-      name:
+      namespace:
         description: '@description 命名空间 非必填'
         type: string
     type: object

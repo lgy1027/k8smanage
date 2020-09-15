@@ -45,11 +45,11 @@ type NodeResponse struct {
 
 type NameSpacesRequest struct {
 	// @description 命名空间 非必填
-	Name string `json:"name"`
+	Namespace string `json:"namespace"`
 }
 
 func (r *NameSpacesRequest) Validate() error {
-	r.Name = strings.TrimSpace(r.Name)
+	r.Namespace = strings.TrimSpace(r.Namespace)
 	return nil
 }
 

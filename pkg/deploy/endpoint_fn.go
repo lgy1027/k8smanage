@@ -126,7 +126,7 @@ func MakeDeleteNsEndpoint(svc Service) endpoint.Endpoint {
 		if req, ok := request.(*NamespaceRequest); !ok {
 			return nil, tipErrors.WithTipMessage(errors.New("MakeDeleteNsEndpoint"), "内部错误")
 		} else {
-			return svc.CreateNs(ctx, req)
+			return svc.DeleteNs(ctx, req)
 		}
 	}
 }

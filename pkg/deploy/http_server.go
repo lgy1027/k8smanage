@@ -71,7 +71,7 @@ func MakeRouter(endpoints Endpoints, options ...httptransport.ServerOption) http
 			opts...,
 		))
 		namespace.Handle("/delete", httptransport.NewServer(
-			endpoints.DeleteEndpoint,
+			endpoints.DeleteNsEndpoint,
 			protocol.LogRequest(protocol.MakeDecodeHTTPRequest(func() interface{} { return &NamespaceRequest{} })),
 			protocol.EncodeHTTPGenericResponse,
 			opts...,

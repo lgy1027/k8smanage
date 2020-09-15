@@ -566,7 +566,7 @@ var doc = `{
         "cluster.NameSpacesRequest": {
             "type": "object",
             "properties": {
-                "name": {
+                "namespace": {
                     "description": "@description 命名空间 非必填",
                     "type": "string"
                 }
