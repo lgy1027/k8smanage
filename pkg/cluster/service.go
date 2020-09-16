@@ -71,12 +71,7 @@ func (cs *clusterService) Cluster(ctx context.Context, req *ClusterRequest) (*Cl
 			clusterDetail = app.GetClusterData()
 		} else {
 			clusterDetail = app.GetClusterData()
-			jsonData, err := json.Marshal(clusterDetail)
-			if err != nil {
-				log.Debug("缓存集群信息失败,err:", err.Error())
-			} else {
-				_ = inital.GetGlobal().GetCache().Set(utils.CLUSTER_PREFIX_KEY, jsonData, utils.CLUSTER_DETAIL_TIME)
-			}
+			app.CacheCluster(clusterDetail)
 		}
 	}
 	return &ClusterResponse{
@@ -174,21 +169,35 @@ func (cs *clusterService) Node(ctx context.Context, req *NodeRequest) (*NodeResp
 func (cs *clusterService) NameSpaces(ctx context.Context, req *NameSpacesRequest) (*NameSpacesResponse, error) {
 	resp := &NameSpacesResponse{}
 	namespaceDetail := make([]model.NamespaceDetail, 0)
-	val, exist, err := inital.GetGlobal().GetCache().Get(utils.NAMESPACE_PREFIX_KEY + req.Namespace)
+	var (
+		results []interface{}
+		result  string
+		err     error
+		exist   bool
+	)
+	if req.Namespace == "" {
+		results, exist, err = inital.GetGlobal().GetCache().HVals(utils.NAMESPACE_PREFIX_KEY)
+	} else {
+		result, exist, err = inital.GetGlobal().GetCache().HGet(utils.NAMESPACE_PREFIX_KEY, utils.NAMESPACE_PREFIX_KEY+req.Namespace)
+	}
 	if err != nil {
 		log.Debug("从缓存获取信息失败,err:", err.Error())
 		resp.Namespaces = app.GetNamespaceDetail(req.Namespace)
 	} else {
 		if exist {
 			if req.Namespace == "" {
-				err = json.Unmarshal([]byte(val), &namespaceDetail)
-				if err != nil {
-					log.Debug("json转换失败,err:", err.Error())
-					namespaceDetail = app.GetNamespaceDetail(req.Namespace)
+				for _, v := range results {
+					var ns model.NamespaceDetail
+					err = json.Unmarshal(v.([]byte), &ns)
+					if err != nil {
+						log.Debug("json转换失败,err:", err.Error())
+					} else {
+						namespaceDetail = append(namespaceDetail, ns)
+					}
 				}
 			} else {
 				ns := model.NamespaceDetail{}
-				err = json.Unmarshal([]byte(val), &ns)
+				err = json.Unmarshal([]byte(result), &ns)
 				if err == nil {
 					namespaceDetail = append(namespaceDetail, ns)
 				} else {
@@ -199,12 +208,7 @@ func (cs *clusterService) NameSpaces(ctx context.Context, req *NameSpacesRequest
 		} else {
 			namespaceDetail = app.GetNamespaceDetail(req.Namespace)
 			if len(namespaceDetail) > 0 {
-				jsonData, err := json.Marshal(namespaceDetail)
-				if err != nil {
-					log.Debug("json转换失败,err:", err.Error())
-				} else {
-					_ = inital.GetGlobal().GetCache().Set(utils.NAMESPACE_PREFIX_KEY+req.Namespace, jsonData, utils.NAMESPACE_TIME)
-				}
+				app.CacheNamespace(namespaceDetail)
 			}
 		}
 	}

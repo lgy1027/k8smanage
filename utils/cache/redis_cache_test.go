@@ -3,8 +3,10 @@
 package cache
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/garyburd/redigo/redis"
+	"relaper.com/kubemanage/model"
 	"strconv"
 	"testing"
 )
@@ -76,7 +78,7 @@ func TestRedisCache_HSet(t *testing.T) {
 
 func TestRedisCache_HGet(t *testing.T) {
 	cache := NewRedisCache(pool)
-	s, err := cache.HGet("hset", "faild")
+	s, _, err := cache.HGet("hset", "faild")
 	if err != nil {
 		t.Error(err)
 	} else {
@@ -121,4 +123,33 @@ func Test_ZREVRANGE(t *testing.T) {
 	vList, err := cache.ZREVRange("space", 0, -1)
 	fmt.Println(err)
 	fmt.Println(vList)
+}
+
+func Test_HMAP(t *testing.T) {
+	cache := NewRedisCache(pool)
+	rs, flag, err := cache.HVals("namespace_key_")
+	fmt.Println(err)
+	fmt.Println(flag)
+	fmt.Println(rs)
+	namespaceDetail := make([]model.NamespaceDetail, 0)
+	for _, v := range rs {
+		var ns model.NamespaceDetail
+		err = json.Unmarshal(v.([]byte), &ns)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			namespaceDetail = append(namespaceDetail, ns)
+		}
+	}
+	fmt.Printf("\n")
+	fmt.Print(err)
+	rs, flag, err = cache.HKeys("namespace_key_")
+	fmt.Println(err)
+	fmt.Println(flag)
+	fmt.Println(rs)
+	result, flag, err := cache.HGet("namespace_key_", "lgy")
+	fmt.Println(err)
+	fmt.Println(flag)
+	fmt.Println(result)
+
 }

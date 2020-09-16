@@ -17,7 +17,7 @@ func ClusterTask() {
 	c := cron.New()
 	spec := "0 0/5 * * * ?"
 	c.AddFunc(spec, func() {
-		app.CacheCluster()
+		app.Cache()
 	})
 	c.Start()
 }

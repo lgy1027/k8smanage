@@ -28,8 +28,11 @@ type MCache interface {
 }
 
 type HCache interface {
-	HGet(key string, field interface{}) (string, error)
+	HGet(key string, field interface{}) (string, bool, error)
 	HSet(key string, field interface{}, value interface{}, ex int) (err error)
+	HDel(key string, field interface{}) (err error)
+	HVals(key string) ([]interface{}, bool, error)
+	HKeys(key string) ([]interface{}, bool, error)
 }
 
 type ZCache interface {

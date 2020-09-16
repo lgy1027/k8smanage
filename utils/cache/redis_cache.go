@@ -112,7 +112,7 @@ func (s *RedisCache) MSet(kv map[string]string) (err error) {
 }
 
 func (s *RedisCache) HSet(key string, field interface{}, value interface{}, ex int) (err error) {
-	log.Debug("action", "HSet", "key", key, "field", field, "value", value)
+	log.Debug("action:", " HSet", " key:", key, " field:", field)
 	if _, err = s.getConn().Do("HSet", key, field, value); err != nil {
 		log.Error("err", err)
 		return
@@ -127,13 +127,47 @@ func (s *RedisCache) HSet(key string, field interface{}, value interface{}, ex i
 	return
 }
 
-func (s *RedisCache) HGet(key string, field interface{}) (string, error) {
-	log.Debug("action", "HGet", "key", key, "field", field)
-	r, err := redis.String(s.getConn().Do("HGet", key, field))
-	if err != nil {
-		return "", err
+func (s *RedisCache) HDel(key string, field interface{}) (err error) {
+	log.Debug("action: ", " HDel", " key: ", key, " field:", field)
+	if _, err = s.getConn().Do("HDEL", key, field); err != nil {
+		log.Error("err", err)
+		return
 	}
-	return r, err
+	return
+}
+
+func (s *RedisCache) HVals(key string) ([]interface{}, bool, error) {
+	log.Debug("action: ", " HVals: ", " key: ", key)
+	r, err := redis.Values(s.getConn().Do("hvals", key))
+	if err != nil {
+		return nil, false, err
+	} else if len(r) == 0 {
+		return r, false, nil
+	}
+	return r, true, nil
+}
+
+func (s *RedisCache) HKeys(key string) ([]interface{}, bool, error) {
+	log.Debug("action: ", " HKeys: ", " key: ", key)
+	r, err := redis.Values(s.getConn().Do("hkeys", key))
+	if err != nil {
+		return nil, false, err
+	} else if len(r) == 0 {
+		return r, false, nil
+	}
+	return r, true, nil
+}
+
+func (s *RedisCache) HGet(key string, field interface{}) (string, bool, error) {
+	log.Debug("action", "HGet", "key", key, "field", field)
+	val, err := redis.String(s.getConn().Do("HGet", key, field))
+	if err != nil {
+		if err == redis.ErrNil {
+			return "", false, nil
+		}
+		return "", false, err
+	}
+	return val, true, nil
 }
 
 func (s *RedisCache) ZAdd(k string, score int64, mem string) (err error) {

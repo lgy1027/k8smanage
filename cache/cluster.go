@@ -33,29 +33,14 @@ func init() {
 	service = k8s2.NewSv()
 }
 
-func CacheCluster() {
+func Cache() {
 	cluster := GetClusterData()
 	namespaceDetail := GetNamespaceDetail("")
-	for _, ns := range namespaceDetail {
-		data, err := json.Marshal(ns)
-		if err == nil {
-			err = inital.GetGlobal().GetCache().Set(utils.NAMESPACE_PREFIX_KEY+ns.Name, data, utils.NAMESPACE_TIME)
-			if err != nil {
-				log.Debugf("缓存命名空间数据失败，err:%v, Data:%v", err.Error(), ns.Name)
-			}
-		} else {
-			log.Debugf("命名空间json转换失败，err:%v, Data:%v", err.Error(), ns.Name)
-		}
-	}
-	namespaceJson, err := json.Marshal(namespaceDetail)
-	if err == nil {
-		err = inital.GetGlobal().GetCache().Set(utils.NAMESPACE_PREFIX_KEY, namespaceJson, utils.NAMESPACE_TIME)
-		if err != nil {
-			log.Debugf("缓存命名空间数据失败，err:%v, Data:%v", err.Error(), cluster.NameSpaceNum)
-		}
-	} else {
-		log.Debugf("命名空间json转换失败，err:%v, Data:%v", err.Error(), cluster.NameSpaceNum)
-	}
+	go CacheNamespace(namespaceDetail)
+	go CacheCluster(cluster)
+}
+
+func CacheCluster(cluster *model.Cluster) {
 	clusterJson, err := json.Marshal(cluster)
 	if err == nil {
 		err = inital.GetGlobal().GetCache().Set(utils.CLUSTER_PREFIX_KEY, clusterJson, utils.CLUSTER_DETAIL_TIME)
@@ -64,6 +49,20 @@ func CacheCluster() {
 		}
 	} else {
 		log.Debugf("集群信息json转换失败，err:%v, Data:%v", err.Error(), cluster)
+	}
+}
+
+func CacheNamespace(namespaceDetail []model.NamespaceDetail) {
+	for _, ns := range namespaceDetail {
+		data, err := json.Marshal(ns)
+		if err == nil {
+			err = inital.GetGlobal().GetCache().HSet(utils.NAMESPACE_PREFIX_KEY, utils.NAMESPACE_PREFIX_KEY+ns.Name, data, utils.NAMESPACE_TIME)
+			if err != nil {
+				log.Debugf("缓存命名空间数据失败，err:%v, Data:%v", err.Error(), ns.Name)
+			}
+		} else {
+			log.Debugf("命名空间json转换失败，err:%v, Data:%v", err.Error(), ns.Name)
+		}
 	}
 }
 
