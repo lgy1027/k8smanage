@@ -45,10 +45,10 @@ func CacheCluster(cluster *model.Cluster) {
 	if err == nil {
 		err = inital.GetGlobal().GetCache().Set(utils.CLUSTER_PREFIX_KEY, clusterJson, utils.CLUSTER_DETAIL_TIME)
 		if err != nil {
-			log.Debugf("缓存集群数据失败，err:%v, Data:%v", err.Error(), cluster)
+			log.Debugf("缓存集群数据失败，err:%v", err.Error())
 		}
 	} else {
-		log.Debugf("集群信息json转换失败，err:%v, Data:%v", err.Error(), cluster)
+		log.Debugf("集群信息json转换失败，err:%v", err.Error())
 	}
 }
 
