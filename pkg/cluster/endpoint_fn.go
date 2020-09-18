@@ -131,6 +131,30 @@ func MakePodInfoEndpoint(svc Service) endpoint.Endpoint {
 	}
 }
 
+func (s *Endpoints) PodLog(ctx context.Context, request *PodInfoRequest) (*PodLogResponse, error) {
+	if resp, err := s.PodInfoEndpoint(ctx, request); err != nil {
+		return nil, err
+	} else {
+		return resp.(*PodLogResponse), nil
+	}
+}
+
+func MakePodLogEndpoint(svc Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		if v, ok := request.(Validator); ok {
+			if err = v.Validate(); err != nil {
+				return nil, err
+			}
+		}
+
+		if req, ok := request.(*PodInfoRequest); !ok {
+			return nil, tipErrors.WithTipMessage(errors.New("MakePodLogEndpoint"), "内部错误")
+		} else {
+			return svc.PodLog(ctx, req)
+		}
+	}
+}
+
 func (s *Endpoints) Pods(ctx context.Context, request *PodsRequest) (*PodsResponse, error) {
 	if resp, err := s.PodsEndpoint(ctx, request); err != nil {
 		return nil, err

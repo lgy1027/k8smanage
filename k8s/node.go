@@ -7,7 +7,7 @@ import (
 
 type Node struct{}
 
-func NewNode() Base {
+func NewNode() *Node {
 	return &Node{}
 }
 

@@ -26,12 +26,6 @@ definitions:
           $ref: '#/definitions/model.NamespaceDetail'
         type: array
     type: object
-  cluster.NodeRequest:
-    properties:
-      name:
-        description: '@description 节点名'
-        type: string
-    type: object
   cluster.NodeResponse:
     properties:
       exist:
@@ -43,7 +37,7 @@ definitions:
     type: object
   cluster.PodInfoRequest:
     properties:
-      namespace:
+      nameSpace:
         description: '@description 命名空间'
         type: string
       podName:
@@ -59,6 +53,12 @@ definitions:
         $ref: '#/definitions/model.PodDetail'
         description: '@description pod信息'
         type: object
+    type: object
+  cluster.PodLogResponse:
+    properties:
+      log:
+        description: '@description pod日志'
+        type: string
     type: object
   cluster.PodsRequest:
     properties:
@@ -285,6 +285,21 @@ definitions:
       status:
         type: string
     type: object
+  model.EventData:
+    properties:
+      eventTime:
+        description: '@description 事件时间'
+        type: string
+      host:
+        description: '@description 主机Ip'
+        type: string
+      messages:
+        description: '@description 信息'
+        type: string
+      reason:
+        description: '@description 原因'
+        type: string
+    type: object
   model.NamespaceDetail:
     properties:
       createTime:
@@ -397,6 +412,10 @@ definitions:
       createTime:
         description: '@description 创建时间'
         type: string
+      eventData:
+        items:
+          $ref: '#/definitions/model.EventData'
+        type: array
       hostIp:
         description: '@description 宿主机地址'
         type: string
@@ -586,16 +605,15 @@ paths:
               type: object
       summary: 获取命名空间信息
   /cluster/v1/node:
-    post:
+    get:
       consumes:
       - application/json
       parameters:
       - description: 节点名
-        in: body
-        name: params
+        in: query
+        name: name
         required: true
-        schema:
-          $ref: '#/definitions/cluster.NodeRequest'
+        type: string
       produces:
       - application/json
       responses:
@@ -650,6 +668,34 @@ paths:
                   $ref: '#/definitions/cluster.PodInfoResponse'
               type: object
       summary: 获取pod信息
+  /cluster/v1/podLog:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 命名空间名 名字
+        in: query
+        name: namespace
+        required: true
+        type: string
+      - description: Pod名字
+        in: query
+        name: podName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/cluster.PodLogResponse'
+              type: object
+      summary: 获取pod日志
   /cluster/v1/pods:
     post:
       consumes:

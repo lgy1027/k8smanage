@@ -144,7 +144,7 @@ var doc = `{
             }
         },
         "/cluster/v1/node": {
-            "post": {
+            "get": {
                 "consumes": [
                     "application/json"
                 ],
@@ -154,13 +154,11 @@ var doc = `{
                 "summary": "获取节点信息",
                 "parameters": [
                     {
+                        "type": "string",
                         "description": "节点名",
-                        "name": "params",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/cluster.NodeRequest"
-                        }
+                        "name": "name",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -249,6 +247,53 @@ var doc = `{
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/cluster.PodInfoResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/cluster/v1/podLog": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "获取pod日志",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "命名空间名 名字",
+                        "name": "namespace",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Pod名字",
+                        "name": "podName",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"errno\":0,\"errmsg\":\"\",\"data\":{},\"extr\":{\"inner_error\":\"\",\"error_stack\":\"\"}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/cluster.PodLogResponse"
                                         }
                                     }
                                 }
@@ -583,15 +628,6 @@ var doc = `{
                 }
             }
         },
-        "cluster.NodeRequest": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "description": "@description 节点名",
-                    "type": "string"
-                }
-            }
-        },
         "cluster.NodeResponse": {
             "type": "object",
             "properties": {
@@ -608,7 +644,7 @@ var doc = `{
         "cluster.PodInfoRequest": {
             "type": "object",
             "properties": {
-                "namespace": {
+                "nameSpace": {
                     "description": "@description 命名空间",
                     "type": "string"
                 },
@@ -629,6 +665,15 @@ var doc = `{
                     "description": "@description pod信息",
                     "type": "object",
                     "$ref": "#/definitions/model.PodDetail"
+                }
+            }
+        },
+        "cluster.PodLogResponse": {
+            "type": "object",
+            "properties": {
+                "log": {
+                    "description": "@description pod日志",
+                    "type": "string"
                 }
             }
         },
@@ -928,6 +973,27 @@ var doc = `{
                 }
             }
         },
+        "model.EventData": {
+            "type": "object",
+            "properties": {
+                "eventTime": {
+                    "description": "@description 事件时间",
+                    "type": "string"
+                },
+                "host": {
+                    "description": "@description 主机Ip",
+                    "type": "string"
+                },
+                "messages": {
+                    "description": "@description 信息",
+                    "type": "string"
+                },
+                "reason": {
+                    "description": "@description 原因",
+                    "type": "string"
+                }
+            }
+        },
         "model.NamespaceDetail": {
             "type": "object",
             "properties": {
@@ -1082,6 +1148,12 @@ var doc = `{
                 "createTime": {
                     "description": "@description 创建时间",
                     "type": "string"
+                },
+                "eventData": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.EventData"
+                    }
                 },
                 "hostIp": {
                     "description": "@description 宿主机地址",

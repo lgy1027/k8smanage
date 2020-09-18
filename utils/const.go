@@ -45,4 +45,7 @@ const (
 
 	NAMESPACE_PREFIX_KEY = "namespace_key_"
 	NAMESPACE_TIME       = 600
+
+	POD_PREFIX_KEY = "pod_key_"
+	POD_TIME       = 600
 )

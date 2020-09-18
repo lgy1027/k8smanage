@@ -2,8 +2,10 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"flag"
 	"fmt"
+	"io"
 	appsv1 "k8s.io/api/apps/v1"
 	apiv1 "k8s.io/api/core/v1"
 	k8serror "k8s.io/apimachinery/pkg/api/errors"
@@ -15,13 +17,13 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/retry"
-	metricsv "k8s.io/metrics/pkg/client/clientset/versioned"
 	"log"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"encoding/json"
 	"os"
-	"path/filepath"
 )
 
 var (
@@ -73,7 +75,7 @@ func getMetrics(clientset *kubernetes.Clientset, pods *PodMetricsList) error {
 
 func int32Ptr(i int32) *int32 { return &i }
 
-func main() {
+func init() {
 	var kubeconfig *string
 	if home := homeDir(); home != "" {
 		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
@@ -94,49 +96,60 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
+}
 
-	mc, err := metricsv.NewForConfig(config)
-	nodeMetrics, err := mc.MetricsV1beta1().NodeMetricses().List(metav1.ListOptions{})
-	//podInfo,err := mc.MetricsV1beta1().PodMetricses("lgy").Get("nginx-v1", metav1.GetOptions{})
-	//mc.MetricsV1beta1().NodeMetricses().List(metav1.ListOptions{})
-	nodes, err := clientset.CoreV1().Nodes().List(metav1.ListOptions{})
-	for _, info := range nodeMetrics.Items {
-		for _, nodeRel := range nodes.Items {
-			if nodeRel.GetName() == info.GetName() {
-				fmt.Println("=========================================")
-				fmt.Println("node name:", nodeRel.GetName())
-				//fmt.Println(nodeRel.Status.Allocatable.Memory().Value())
-				//fmt.Println(nodeRel.Status.Capacity.Memory().Value())
-				//memNum := nodeRel.Status.Capacity.Memory().Value()
-				//memNumValue := decimal.NewFromInt(memNum)
-				//memNumValue = memNumValue.Div(decimal.NewFromInt(1024)).Div(decimal.NewFromInt(1024)).DivRound(decimal.NewFromInt(1024),2)
-				//fmt.Println(memNumValue.Float64())
-				//fmt.Println(info.Usage.Memory().Value())
-				//memNum = info.Usage.Memory().Value()
-				//umemNumValue := decimal.NewFromInt(memNum)
-				//umemNumValue = umemNumValue.Div(decimal.NewFromInt(1024)).Div(decimal.NewFromInt(1024)).DivRound(decimal.NewFromInt(1024),2)
-				//fmt.Println(umemNumValue.Float64())
-				//fmt.Println(umemNumValue.DivRound(memNumValue,2).Float64())
-				//fmt.Println("=========================================")
-				fmt.Println(nodeRel.Status.Allocatable.Cpu().MilliValue())
-				fmt.Println(nodeRel.Status.Allocatable.Cpu().Value())
-				fmt.Println(nodeRel.Status.Capacity.Cpu().MilliValue())
-				fmt.Println(nodeRel.Status.Capacity.Cpu().Value())
-				fmt.Println(info.Usage.Cpu().MilliValue())
-				fmt.Println(info.Usage.Cpu().Value())
-				fmt.Println()
-				fmt.Println()
-				fmt.Println()
-				break
-			}
+func main() {
+	for _, pod := range getPods() {
+		if pod.GetNamespace() == "testsd" && pod.GetName() == "test-b8q6sr-7d7566cb49-l5wfg" {
+			//events := getEvent(pod.GetName(), pod.GetNamespace())
+			//fmt.Println("Event=============name:", pod.GetName(), "=====namespace:", pod.GetNamespace(), "============event:", events)
+			log := getPodLogs(pod.GetNamespace(), pod.GetName())
+			fmt.Println(log)
 		}
 	}
 
-	podsMetrics, err := mc.MetricsV1beta1().PodMetricses("istio-system").Get("jaeger-operator-bdbb4954b-9zmnt", metav1.GetOptions{})
-	fmt.Println(err)
-	fmt.Println(podsMetrics.Containers[0].Usage.Memory().Value() / 1024 / 1024)
-	fmt.Println(podsMetrics.Containers[0].Usage.Cpu().MilliValue())
-	fmt.Println()
+	//mc, err := metricsv.NewForConfig(config)
+	//nodeMetrics, err := mc.MetricsV1beta1().NodeMetricses().List(metav1.ListOptions{})
+	////podInfo,err := mc.MetricsV1beta1().PodMetricses("lgy").Get("nginx-v1", metav1.GetOptions{})
+	////mc.MetricsV1beta1().NodeMetricses().List(metav1.ListOptions{})
+	//nodes, err := clientset.CoreV1().Nodes().List(metav1.ListOptions{})
+	//for _, info := range nodeMetrics.Items {
+	//	for _, nodeRel := range nodes.Items {
+	//		if nodeRel.GetName() == info.GetName() {
+	//			fmt.Println("=========================================")
+	//			fmt.Println("node name:", nodeRel.GetName())
+	//			//fmt.Println(nodeRel.Status.Allocatable.Memory().Value())
+	//			//fmt.Println(nodeRel.Status.Capacity.Memory().Value())
+	//			//memNum := nodeRel.Status.Capacity.Memory().Value()
+	//			//memNumValue := decimal.NewFromInt(memNum)
+	//			//memNumValue = memNumValue.Div(decimal.NewFromInt(1024)).Div(decimal.NewFromInt(1024)).DivRound(decimal.NewFromInt(1024),2)
+	//			//fmt.Println(memNumValue.Float64())
+	//			//fmt.Println(info.Usage.Memory().Value())
+	//			//memNum = info.Usage.Memory().Value()
+	//			//umemNumValue := decimal.NewFromInt(memNum)
+	//			//umemNumValue = umemNumValue.Div(decimal.NewFromInt(1024)).Div(decimal.NewFromInt(1024)).DivRound(decimal.NewFromInt(1024),2)
+	//			//fmt.Println(umemNumValue.Float64())
+	//			//fmt.Println(umemNumValue.DivRound(memNumValue,2).Float64())
+	//			//fmt.Println("=========================================")
+	//			fmt.Println(nodeRel.Status.Allocatable.Cpu().MilliValue())
+	//			fmt.Println(nodeRel.Status.Allocatable.Cpu().Value())
+	//			fmt.Println(nodeRel.Status.Capacity.Cpu().MilliValue())
+	//			fmt.Println(nodeRel.Status.Capacity.Cpu().Value())
+	//			fmt.Println(info.Usage.Cpu().MilliValue())
+	//			fmt.Println(info.Usage.Cpu().Value())
+	//			fmt.Println()
+	//			fmt.Println()
+	//			fmt.Println()
+	//			break
+	//		}
+	//	}
+	//}
+
+	//podsMetrics, err := mc.MetricsV1beta1().PodMetricses("istio-system").Get("jaeger-operator-bdbb4954b-9zmnt", metav1.GetOptions{})
+	//fmt.Println(err)
+	//fmt.Println(podsMetrics.Containers[0].Usage.Memory().Value() / 1024 / 1024)
+	//fmt.Println(podsMetrics.Containers[0].Usage.Cpu().MilliValue())
+	//fmt.Println()
 
 	//mc.MetricsV1beta1().PodMetricses(metav1.NamespaceAll).List(metav1.ListOptions{})
 	//mc.MetricsV1beta1().PodMetricses(metav1.NamespaceAll).Get("your pod name", metav1.GetOptions{})
@@ -235,6 +248,66 @@ func main() {
 	//getNode()
 }
 
+func getPodLogs(namespace, name string) string {
+	podLogOpts := apiv1.PodLogOptions{}
+	req := clientset.CoreV1().Pods(namespace).GetLogs(name, &podLogOpts)
+	podLogs, err := req.Stream()
+	if err != nil {
+		return "error in opening stream"
+	}
+	defer podLogs.Close()
+
+	buf := new(bytes.Buffer)
+	_, err = io.Copy(buf, podLogs)
+	if err != nil {
+		return "error in copy information from podLogs to buf"
+	}
+	str := buf.String()
+
+	return str
+}
+
+type EventData struct {
+	// 事件事件
+	EventTime string
+	// 信息
+	Messages string
+	// 原因
+	Reason string
+	// 主机Ip
+	Host string
+}
+
+// 替换时间的T和Z
+func ReplaceTime(t string) string {
+	t = strings.Replace(t, "T", " ", -1)
+	t = strings.Replace(t, "Z", "", -1)
+	t = strings.Replace(t, "+0800 CS", "", -1)
+	ts := strings.Split(t, ".")
+	return ts[0]
+}
+
+func getEvent(podName, namespace string) []EventData {
+	opt := metav1.ListOptions{}
+	opt.FieldSelector = "involvedObject.name=" + podName + ",involvedObject.namespace=" + namespace
+	events, err := clientset.CoreV1().Events(namespace).List(opt)
+	fmt.Println(err)
+	return parseEvents(events.Items)
+}
+
+func parseEvents(items []apiv1.Event) []EventData {
+	data := []EventData{}
+	for _, v := range items {
+		t := EventData{}
+		t.Reason = v.Reason
+		t.Messages = v.Message
+		t.EventTime = v.FirstTimestamp.String()
+		t.Host = v.Source.Host
+		data = append(data, t)
+	}
+	return data
+}
+
 func prompt() {
 	fmt.Printf("-> Press Return key to continue.")
 	scanner := bufio.NewScanner(os.Stdin)
@@ -245,6 +318,14 @@ func prompt() {
 		panic(err)
 	}
 	fmt.Println()
+}
+
+func getPods() []apiv1.Pod {
+	pods, err := clientset.CoreV1().Pods("").List(metav1.ListOptions{})
+	if err != nil {
+		panic(err)
+	}
+	return pods.Items
 }
 
 func testNs() {

@@ -36,8 +36,9 @@ func init() {
 func Cache() {
 	cluster := GetClusterData()
 	namespaceDetail := GetNamespaceDetail("")
-	go CacheNamespace(namespaceDetail)
 	go CacheCluster(cluster)
+	go CacheNamespace(namespaceDetail)
+	go CachePods()
 }
 
 func CacheCluster(cluster *model.Cluster) {
@@ -175,8 +176,7 @@ func GetDetailForRange(namespace v1.Namespace) model.NamespaceDetail {
 		Status:     string(namespace.Status.Phase),
 	}
 	name := namespace.GetName()
-	//var wg tools.WaitGroupWrapper
-	//wg.Wrap(func() {
+
 	var wg sync.WaitGroup
 	wg.Add(3)
 	go func() {
@@ -188,8 +188,7 @@ func GetDetailForRange(namespace v1.Namespace) model.NamespaceDetail {
 		}
 		wg.Done()
 	}()
-	//})
-	//wg.Wrap(func() {
+
 	go func() {
 		stats, err := statefulSet.List(name)
 		if err != nil {
@@ -199,8 +198,7 @@ func GetDetailForRange(namespace v1.Namespace) model.NamespaceDetail {
 		}
 		wg.Done()
 	}()
-	//})
-	//wg.Wrap(func() {
+
 	go func() {
 		svcs, err := service.List(name)
 		if err != nil {
@@ -210,7 +208,35 @@ func GetDetailForRange(namespace v1.Namespace) model.NamespaceDetail {
 		}
 		wg.Done()
 	}()
-	//})
 	wg.Wait()
 	return namespaceDetail
+}
+
+func CachePods() {
+	list, err := pod.List("")
+	if err != nil {
+		log.Debugf("Method [CachePods] = > Get pod list err:%v", err.Error())
+		return
+	}
+	podList := list.(*v1.PodList).Items
+	for _, pod := range podList {
+		podJson, err := json.Marshal(pod)
+		if err == nil {
+			err = inital.GetGlobal().GetCache().Set(utils.POD_PREFIX_KEY+pod.GetNamespace()+":"+pod.GetName(), podJson, utils.POD_TIME)
+			if err != nil {
+				log.Debugf("缓存pod数据失败，err:%v", err.Error())
+			}
+		} else {
+			log.Debugf("pod信息json转换失败，err:%v", err.Error())
+		}
+	}
+	podListJson, err := json.Marshal(podList)
+	if err == nil {
+		err = inital.GetGlobal().GetCache().Set(utils.POD_PREFIX_KEY, podListJson, utils.POD_TIME)
+		if err != nil {
+			log.Debugf("缓存pod数据失败，err:%v", err.Error())
+		}
+	} else {
+		log.Debugf("pod信息json转换失败，err:%v", err.Error())
+	}
 }

@@ -25,8 +25,7 @@ type ClusterResponse struct {
 }
 
 type NodeRequest struct {
-	// @description 节点名
-	Name string `json:"name"`
+	Name string `query:"name",description:"节点名"`
 }
 
 func (r *NodeRequest) Validate() error {
@@ -59,9 +58,9 @@ type NameSpacesResponse struct {
 
 type PodInfoRequest struct {
 	// @description 命名空间
-	NameSpace string `json:"namespace"`
+	NameSpace string `query:"namespace"`
 	// @description pod
-	PodName string `json:"podName"`
+	PodName string `query:"podName"`
 }
 
 func (r *PodInfoRequest) Validate() error {
@@ -96,6 +95,11 @@ func (r *PodsRequest) Validate() error {
 type PodsResponse struct {
 	// @description pods列表
 	Pods []model.PodDetail `json:"pods,omitempty"`
+}
+
+type PodLogResponse struct {
+	// @description pod日志
+	Log string `json:"log,omitempty"`
 }
 
 type ResourceRequest struct {

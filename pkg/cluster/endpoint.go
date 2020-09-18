@@ -9,6 +9,7 @@ type Endpoints struct {
 	NodeEndpoint        endpoint.Endpoint
 	NameSpaceEndpoint   endpoint.Endpoint
 	PodInfoEndpoint     endpoint.Endpoint
+	PodLogEndpoint      endpoint.Endpoint
 	PodsEndpoint        endpoint.Endpoint
 	DeploymentEndpoint  endpoint.Endpoint
 	StatefulSetEndpoint endpoint.Endpoint
@@ -23,6 +24,7 @@ func NewEndpoints(svc Service) Endpoints {
 		NodeEndpoint:        MakeNodeEndpoint(svc),
 		NameSpaceEndpoint:   MakeNameSpaceEndpoint(svc),
 		PodInfoEndpoint:     MakePodInfoEndpoint(svc),
+		PodLogEndpoint:      MakePodLogEndpoint(svc),
 		PodsEndpoint:        MakePodsEndpoint(svc),
 		DeploymentEndpoint:  MakeDeploymentEndpoint(svc),
 		StatefulSetEndpoint: MakeStatefulSetEndpoint(svc),

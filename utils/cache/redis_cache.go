@@ -30,7 +30,7 @@ func (s *RedisCache) Close() error {
 }
 
 func (s *RedisCache) Set(key string, value interface{}, ex int) (err error) {
-	//log.Debug("action", "Set", "key", key, "value", value, "ex", ex)
+	log.Debug("action：", "Set ", "key：", key, " ex：", ex)
 	if ex > 0 {
 		_, err = s.getConn().Do("SET", key, value, "EX", ex)
 	} else {
@@ -54,7 +54,7 @@ func (s *RedisCache) Get(key string) (string, bool, error) {
 }
 
 func (s *RedisCache) Sadd(key string, vList []string, ex int) (err error) {
-	log.Debug("action", "SADD", "key", key, "vListLength", len(vList), "ex", ex)
+	log.Debug("action：", " SADD ", " key：", key, " vListLength：", len(vList), "ex", ex)
 	var args = make([]interface{}, 0, len(vList)+1)
 	args = append(args, key)
 	for _, v := range vList {

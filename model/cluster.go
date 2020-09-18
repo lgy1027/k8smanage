@@ -90,6 +90,7 @@ type PodDetail struct {
 	// @description 注释
 	Annotation map[string]string `json:"annotation,omitempty"`
 	Resource   ResourceDetail    `json:"resource,omitempty"`
+	EventData  []EventData       `json:"eventData,omitempty"`
 }
 
 type Label struct {
@@ -160,4 +161,15 @@ type ServiceDetail struct {
 	Namespace string           `json:"namespace,omitempty"`
 	Spec      v1.ServiceSpec   `json:"spec,omitempty"`
 	Status    v1.ServiceStatus `json:"status,omitempty"`
+}
+
+type EventData struct {
+	// @description 事件时间
+	EventTime string `json:"eventTime,omitempty"`
+	// @description 信息
+	Messages string `json:"messages,omitempty"`
+	// @description 原因
+	Reason string `json:"reason,omitempty"`
+	// @description 主机Ip
+	Host string `json:"host,omitempty"`
 }

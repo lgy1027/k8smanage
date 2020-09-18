@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 EXE_FILE_NAME=kubemanage
-HOST_LIST=(47.111.115.226)
+HOST_LIST=(order)
 HOST_PATH=/opt/lgy/k8smanage
 
 ######

@@ -14,16 +14,16 @@ func Mux(open bool, address string) *http.ServeMux {
 	log.Info("action", "start init service")
 	r := http.NewServeMux()
 	var (
-		nodeService     = cluster.NewService()
-		nodeEndpoints   = cluster.NewEndpoints(nodeService)
-		nodeHttpHandler = cluster.NewHTTPHandler(nodeEndpoints)
+		clusterService     = cluster.NewService()
+		clusterEndpoints   = cluster.NewEndpoints(clusterService)
+		clusterHttpHandler = cluster.NewHTTPHandler(clusterEndpoints)
 
 		deployService     = deploy.NewService()
 		deployEndpoints   = deploy.NewEndpoints(deployService)
 		deployHttpHandler = deploy.NewHTTPHandler(deployEndpoints)
 	)
 
-	r.Handle("/cluster/", http.StripPrefix("/cluster", nodeHttpHandler))
+	r.Handle("/cluster/", http.StripPrefix("/cluster", clusterHttpHandler))
 	r.Handle("/resource/", http.StripPrefix("/resource", deployHttpHandler))
 	log.Info("action", "success init service")
 	if open {
