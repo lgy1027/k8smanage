@@ -8,6 +8,7 @@ import (
 	_ "relaper.com/kubemanage/docs"
 	"relaper.com/kubemanage/pkg/cluster"
 	"relaper.com/kubemanage/pkg/deploy"
+	"relaper.com/kubemanage/pkg/webshell"
 )
 
 func Mux(open bool, address string) *http.ServeMux {
@@ -25,6 +26,8 @@ func Mux(open bool, address string) *http.ServeMux {
 
 	r.Handle("/cluster/", http.StripPrefix("/cluster", clusterHttpHandler))
 	r.Handle("/resource/", http.StripPrefix("/resource", deployHttpHandler))
+	r.HandleFunc("/ws/{namespace}/{pod}/{container}/logs", webshell.ServeWsLogs)
+	r.HandleFunc("/ws/{namespace}/{pod}/{container}/webshell", webshell.ServeWsTerminal)
 	log.Info("action", "success init service")
 	if open {
 		go func() {

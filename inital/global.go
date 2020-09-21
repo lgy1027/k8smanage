@@ -67,6 +67,10 @@ func (g *Global) GetDynamicClient() dynamic.Interface {
 	return g.dynamicClient
 }
 
+func (g *Global) GetK8sConfig() *rest.Config {
+	return g.k8sConfig
+}
+
 func (g *Global) GetMetricsClient() *versioned.Clientset {
 	return g.metrics
 }
