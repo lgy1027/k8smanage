@@ -138,29 +138,29 @@ type NamespaceDetail struct {
 
 type DeploymentDetail struct {
 	// @description 资源类型
-	Kind      string                  `json:"kind,omitempty" default:"Deployment"`
-	Name      string                  `json:"name,omitempty"`
-	Namespace string                  `json:"namespace,omitempty"`
-	Spec      appsv1.DeploymentSpec   `json:"spec,omitempty"`
-	Status    appsv1.DeploymentStatus `json:"status,omitempty"`
+	Kind      string `json:"kind,omitempty" default:"Deployment"`
+	Name      string `json:"name,omitempty"`
+	Namespace string `json:"namespace,omitempty"`
+	//Spec      appsv1.DeploymentSpec   `json:"spec,omitempty"`
+	Status appsv1.DeploymentStatus `json:"status,omitempty"`
 }
 
 type StatefulSetDetail struct {
 	// @description 资源类型
-	Kind      string                   `json:"kind" default:"StatefulSet"`
-	Name      string                   `json:"name,omitempty"`
-	Namespace string                   `json:"namespace,omitempty"`
-	Spec      appsv1.StatefulSetSpec   `json:"spec,omitempty"`
-	Status    appsv1.StatefulSetStatus `json:"status,omitempty"`
+	Kind      string `json:"kind" default:"StatefulSet"`
+	Name      string `json:"name,omitempty"`
+	Namespace string `json:"namespace,omitempty"`
+	//Spec      appsv1.StatefulSetSpec   `json:"spec,omitempty"`
+	Status appsv1.StatefulSetStatus `json:"status,omitempty"`
 }
 
 type ServiceDetail struct {
 	// @description 资源类型
-	Kind      string           `json:"kind" default:"Service"`
-	Name      string           `json:"name,omitempty"`
-	Namespace string           `json:"namespace,omitempty"`
-	Spec      v1.ServiceSpec   `json:"spec,omitempty"`
-	Status    v1.ServiceStatus `json:"status,omitempty"`
+	Kind      string `json:"kind" default:"Service"`
+	Name      string `json:"name,omitempty"`
+	Namespace string `json:"namespace,omitempty"`
+	//Spec      v1.ServiceSpec   `json:"spec,omitempty"`
+	Status v1.ServiceStatus `json:"status,omitempty"`
 }
 
 type EventData struct {

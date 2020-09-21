@@ -250,3 +250,27 @@ func MakeServiceEndpoint(svc Service) endpoint.Endpoint {
 		}
 	}
 }
+
+func (s *Endpoints) GetYaml(ctx context.Context, request *GetYamlRequest) (*GetYamlResponse, error) {
+	if resp, err := s.GetYamlEndpoint(ctx, request); err != nil {
+		return nil, err
+	} else {
+		return resp.(*GetYamlResponse), nil
+	}
+}
+
+func MakeGetYamlEndpoint(svc Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		if v, ok := request.(Validator); ok {
+			if err = v.Validate(); err != nil {
+				return nil, err
+			}
+		}
+
+		if req, ok := request.(*GetYamlRequest); !ok {
+			return nil, tipErrors.WithTipMessage(errors.New("MakeGetYamlEndpoint"), "内部错误")
+		} else {
+			return svc.GetYaml(ctx, req)
+		}
+	}
+}

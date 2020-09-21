@@ -8,6 +8,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	k8serror "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/metrics/pkg/apis/metrics/v1beta1"
 	app "relaper.com/kubemanage/cache"
 	"relaper.com/kubemanage/inital"
@@ -30,6 +31,7 @@ type Service interface {
 	Deployment(ctx context.Context, req *ResourceRequest) (*DeploymentsResponse, error)
 	StatefulSet(ctx context.Context, req *ResourceRequest) (*StatefulSetsResponse, error)
 	Services(ctx context.Context, req *ResourceRequest) (*ServiceResponse, error)
+	GetYaml(ctx context.Context, req *GetYamlRequest) (*GetYamlResponse, error)
 }
 
 // NewService return a Service interface
@@ -477,4 +479,45 @@ func (cs *clusterService) GetDetailForRange(namespace v1.Namespace) model.Namesp
 	//})
 	wg.Wait()
 	return namespaceDetail
+}
+
+// @Summary  获取资源详细配置
+// @Produce  json
+// @Accept  json
+// @Param   namespace query string true "命名空间名 名字"
+// @Param   kind query string true "资源类型"
+// @Param   name query string true "资源名"
+// @Success 200 {object} protocol.Response{data=GetYamlResponse} "{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}"
+// @Router /cluster/v1/getYaml [get]
+func (cs *clusterService) GetYaml(ctx context.Context, req *GetYamlRequest) (*GetYamlResponse, error) {
+
+	var (
+		err error
+		obj *unstructured.Unstructured
+	)
+	switch req.Kind {
+	case utils.DEPLOY_DEPLOYMENT:
+		obj, err = cs.deployment.DynamicGet(req.Namespace, req.Name)
+	case utils.DEPLOY_STATEFULSET:
+		obj, err = cs.statefulSet.DynamicGet(req.Namespace, req.Name)
+	case utils.DEPLOY_Service:
+		obj, err = cs.service.DynamicGet(req.Namespace, req.Name)
+	}
+
+	err = k8s2.PrintErr(err)
+	if err != nil {
+		return nil, err
+	}
+	delete(obj.Object, "status")
+	delete(obj.Object["metadata"].(map[string]interface{}), "creationTimestamp")
+	delete(obj.Object["metadata"].(map[string]interface{}), "generation")
+	delete(obj.Object["metadata"].(map[string]interface{}), "resourceVersion")
+	delete(obj.Object["metadata"].(map[string]interface{}), "selfLink")
+	delete(obj.Object["metadata"].(map[string]interface{}), "uid")
+	delete(obj.Object["spec"].(map[string]interface{})["template"].(map[string]interface{})["spec"].(map[string]interface{}), "terminationGracePeriodSeconds")
+	delete(obj.Object["spec"].(map[string]interface{})["template"].(map[string]interface{})["metadata"].(map[string]interface{}), "creationTimestamp")
+	cont := obj.Object["spec"].(map[string]interface{})["template"].(map[string]interface{})["spec"].(map[string]interface{})["containers"].([]interface{})[0].(map[string]interface{})
+	delete(cont, "terminationMessagePath")
+	delete(cont, "terminationMessagePolicy")
+	return &GetYamlResponse{Yaml: obj.Object}, nil
 }

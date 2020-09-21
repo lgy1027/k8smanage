@@ -56,6 +56,10 @@ func (deployment *Deployment) Update(namespace string, result *appsv1.Deployment
 	return PrintErr(retryErr)
 }
 
+func (deployment *Deployment) DynamicGet(namespace, name string) (*unstructured.Unstructured, error) {
+	return inital.GetGlobal().GetResourceClient(utils.DEPLOYMENT).Namespace(namespace).Get(name, metav1.GetOptions{})
+}
+
 func (deployment *Deployment) DynamicCreate(namespace string, yaml *unstructured.Unstructured) (*unstructured.Unstructured, error) {
 	return inital.GetGlobal().GetResourceClient(utils.DEPLOYMENT).Namespace(namespace).Create(yaml, metav1.CreateOptions{})
 }

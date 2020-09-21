@@ -18,8 +18,8 @@ func AssembleService(namespace string, svcs []v1.Service) []model.ServiceDetail 
 			Kind:      utils.DEPLOY_Service,
 			Namespace: svc.GetNamespace(),
 			Name:      svc.GetName(),
-			Spec:      svc.Spec,
-			Status:    svc.Status,
+			//Spec:      svc.Spec,
+			Status: svc.Status,
 		})
 	}
 	return svcList

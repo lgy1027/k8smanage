@@ -18,8 +18,8 @@ func AssembleDeployment(namespace string, deploys []appsv1.Deployment) []model.D
 			Kind:      utils.DEPLOY_DEPLOYMENT,
 			Namespace: deploy.GetNamespace(),
 			Name:      deploy.GetName(),
-			Spec:      deploy.Spec,
-			Status:    deploy.Status,
+			//Spec:      deploy.Spec,
+			Status: deploy.Status,
 		})
 	}
 	return deployList

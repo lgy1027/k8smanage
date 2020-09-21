@@ -35,6 +35,10 @@ func (sv *Sv) Create(namespace string, yaml *apiv1.Service) (*apiv1.Service, err
 	return inital.GetGlobal().GetClientSet().CoreV1().Services(namespace).Create(yaml)
 }
 
+func (sv *Sv) DynamicGet(namespace string, name string) (*unstructured.Unstructured, error) {
+	return inital.GetGlobal().GetResourceClient(utils.SERVICE).Namespace(namespace).Get(name, metav1.GetOptions{})
+}
+
 func (sv *Sv) DynamicCreate(namespace string, yaml *unstructured.Unstructured) (*unstructured.Unstructured, error) {
 	return inital.GetGlobal().GetResourceClient(utils.SERVICE).Namespace(namespace).Create(yaml, metav1.CreateOptions{})
 }

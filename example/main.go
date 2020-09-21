@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -17,18 +18,17 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/retry"
+	"k8s.io/metrics/pkg/client/clientset/versioned"
 	"log"
+	"os"
 	"path/filepath"
 	"strings"
-	"time"
-
-	"encoding/json"
-	"os"
 )
 
 var (
 	clientset    *kubernetes.Clientset
 	dynamiClient dynamic.Interface
+	metrics      *versioned.Clientset
 )
 
 func homeDir() string {
@@ -36,41 +36,6 @@ func homeDir() string {
 		return h
 	}
 	return os.Getenv("USERPROFILE") // windows
-}
-
-// PodMetricsList : PodMetricsList
-type PodMetricsList struct {
-	Kind       string `json:"kind"`
-	APIVersion string `json:"apiVersion"`
-	Metadata   struct {
-		SelfLink string `json:"selfLink"`
-	} `json:"metadata"`
-	Items []struct {
-		Metadata struct {
-			Name              string    `json:"name"`
-			Namespace         string    `json:"namespace"`
-			SelfLink          string    `json:"selfLink"`
-			CreationTimestamp time.Time `json:"creationTimestamp"`
-		} `json:"metadata"`
-		Timestamp  time.Time `json:"timestamp"`
-		Window     string    `json:"window"`
-		Containers []struct {
-			Name  string `json:"name"`
-			Usage struct {
-				CPU    string `json:"cpu"`
-				Memory string `json:"memory"`
-			} `json:"usage"`
-		} `json:"containers"`
-	} `json:"items"`
-}
-
-func getMetrics(clientset *kubernetes.Clientset, pods *PodMetricsList) error {
-	data, err := clientset.RESTClient().Get().AbsPath("apis/metrics.k8s.io/v1beta1/pods").DoRaw()
-	if err != nil {
-		return err
-	}
-	err = json.Unmarshal(data, &pods)
-	return err
 }
 
 func int32Ptr(i int32) *int32 { return &i }
@@ -91,6 +56,10 @@ func init() {
 		log.Println(err)
 	}
 	//dynamicClient, err := dynamic.NewForConfig(config)
+	metrics, err = versioned.NewForConfig(config)
+	if err != nil {
+		panic(err.Error())
+	}
 
 	clientset, err = kubernetes.NewForConfig(config)
 	if err != nil {
@@ -99,153 +68,20 @@ func init() {
 }
 
 func main() {
+
+}
+
+func Other() {
 	for _, pod := range getPods() {
 		if pod.GetNamespace() == "testsd" && pod.GetName() == "test-b8q6sr-7d7566cb49-l5wfg" {
-			//events := getEvent(pod.GetName(), pod.GetNamespace())
-			//fmt.Println("Event=============name:", pod.GetName(), "=====namespace:", pod.GetNamespace(), "============event:", events)
+			events := getEvent(pod.GetName(), pod.GetNamespace())
+			fmt.Println("Event=============name:", pod.GetName(), "=====namespace:", pod.GetNamespace(), "============event:", events)
 			log := getPodLogs(pod.GetNamespace(), pod.GetName())
 			fmt.Println(log)
 		}
 	}
 
-	//mc, err := metricsv.NewForConfig(config)
-	//nodeMetrics, err := mc.MetricsV1beta1().NodeMetricses().List(metav1.ListOptions{})
-	////podInfo,err := mc.MetricsV1beta1().PodMetricses("lgy").Get("nginx-v1", metav1.GetOptions{})
-	////mc.MetricsV1beta1().NodeMetricses().List(metav1.ListOptions{})
-	//nodes, err := clientset.CoreV1().Nodes().List(metav1.ListOptions{})
-	//for _, info := range nodeMetrics.Items {
-	//	for _, nodeRel := range nodes.Items {
-	//		if nodeRel.GetName() == info.GetName() {
-	//			fmt.Println("=========================================")
-	//			fmt.Println("node name:", nodeRel.GetName())
-	//			//fmt.Println(nodeRel.Status.Allocatable.Memory().Value())
-	//			//fmt.Println(nodeRel.Status.Capacity.Memory().Value())
-	//			//memNum := nodeRel.Status.Capacity.Memory().Value()
-	//			//memNumValue := decimal.NewFromInt(memNum)
-	//			//memNumValue = memNumValue.Div(decimal.NewFromInt(1024)).Div(decimal.NewFromInt(1024)).DivRound(decimal.NewFromInt(1024),2)
-	//			//fmt.Println(memNumValue.Float64())
-	//			//fmt.Println(info.Usage.Memory().Value())
-	//			//memNum = info.Usage.Memory().Value()
-	//			//umemNumValue := decimal.NewFromInt(memNum)
-	//			//umemNumValue = umemNumValue.Div(decimal.NewFromInt(1024)).Div(decimal.NewFromInt(1024)).DivRound(decimal.NewFromInt(1024),2)
-	//			//fmt.Println(umemNumValue.Float64())
-	//			//fmt.Println(umemNumValue.DivRound(memNumValue,2).Float64())
-	//			//fmt.Println("=========================================")
-	//			fmt.Println(nodeRel.Status.Allocatable.Cpu().MilliValue())
-	//			fmt.Println(nodeRel.Status.Allocatable.Cpu().Value())
-	//			fmt.Println(nodeRel.Status.Capacity.Cpu().MilliValue())
-	//			fmt.Println(nodeRel.Status.Capacity.Cpu().Value())
-	//			fmt.Println(info.Usage.Cpu().MilliValue())
-	//			fmt.Println(info.Usage.Cpu().Value())
-	//			fmt.Println()
-	//			fmt.Println()
-	//			fmt.Println()
-	//			break
-	//		}
-	//	}
-	//}
-
-	//podsMetrics, err := mc.MetricsV1beta1().PodMetricses("istio-system").Get("jaeger-operator-bdbb4954b-9zmnt", metav1.GetOptions{})
-	//fmt.Println(err)
-	//fmt.Println(podsMetrics.Containers[0].Usage.Memory().Value() / 1024 / 1024)
-	//fmt.Println(podsMetrics.Containers[0].Usage.Cpu().MilliValue())
-	//fmt.Println()
-
-	//mc.MetricsV1beta1().PodMetricses(metav1.NamespaceAll).List(metav1.ListOptions{})
-	//mc.MetricsV1beta1().PodMetricses(metav1.NamespaceAll).Get("your pod name", metav1.GetOptions{})
-
-	//DeployMent()
-	//DynamicDeploy()
-	// 通过实现 clientset 的 CoreV1Interface 接口列表中的 PodsGetter 接口方法 Pods(namespace string)返回 PodInterface
-	// PodInterface 接口拥有操作 Pod 资源的方法，例如 Create、Update、Get、List 等方法
-	// 注意：Pods() 方法中 namespace 不指定则获取 Cluster 所有 Pod 列表
-
-	//nodes,err := clientset.CoreV1().Nodes().List(metav1.ListOptions{})
-	//fmt.Println(err)
-	//fmt.Println(nodes)
-	//pods, err := clientset.CoreV1().Pods("").List(metav1.ListOptions{})
-	//if err != nil {
-	//	panic(err.Error())
-	//}
-	//fmt.Printf("There are %d pods in the k8s cluster\n", len(pods.Items))
-
-	// 获取指定 namespace 中的 Pod 列表信息
-	//namespace := "kubesphere-monitoring-system"
-	//pods, err = clientset.CoreV1().Pods(namespace).List(metav1.ListOptions{})
-	//if err != nil {
-	//	panic(err)
-	//}
-	//fmt.Printf("\nThere are %d pods in namespaces %s\n", len(pods.Items), namespace)
-	//for _, pod := range pods.Items {
-	//	fmt.Printf("Name: %s, Status: %s, CreateTime: %s\n", pod.ObjectMeta.Name, pod.Status.Phase, pod.ObjectMeta.CreationTimestamp)
-	//}
-	//time.Sleep(10 * time.Second)
-
-	//for {
-	//	// 通过实现 clientset 的 CoreV1Interface 接口列表中的 PodsGetter 接口方法 Pods(namespace string)返回 PodInterface
-	//	// PodInterface 接口拥有操作 Pod 资源的方法，例如 Create、Update、Get、List 等方法
-	//	// 注意：Pods() 方法中 namespace 不指定则获取 Cluster 所有 Pod 列表
-	//	pods, err := clientset.CoreV1().Pods("").List(metav1.ListOptions{})
-	//	if err != nil {
-	//		panic(err.Error())
-	//	}
-	//	fmt.Printf("There are %d pods in the k8s cluster\n", len(pods.Items))
-	//	var (
-	//		node1 int
-	//		node2 int
-	//		node3 int
-	//		master int
-	//		total int
-	//		failed int
-	//	)
-	//	for _, pod := range pods.Items {
-	//		if pod.Status.Phase != apiv1.PodRunning{
-	//			fmt.Println("node:",pod.Spec.NodeName," podName:",pod.Name, " podStatus:",pod.Status.Phase)
-	//			failed++
-	//			continue
-	//		}
-	//		switch pod.Spec.NodeName {
-	//		case "node1":
-	//			node1++
-	//		case "node2":
-	//			node2++
-	//		case "node3":
-	//			node3++
-	//		case "master":
-	//			master++
-	//		}
-	//		total++
-	//	}
-	//	fmt.Printf("master: %d node1: %d node2: %d node3: %d total: %d failed: %d",master,node1,node2,node3,total,failed)
-	//
-	//	// 获取指定 namespace 中的 Pod 列表信息
-	//	//namespce := "kubesphere-monitoring-system"
-	//	//pods, err = clientset.CoreV1().Pods(namespce).List(metav1.ListOptions{})
-	//	//if err != nil {
-	//	//	panic(err)
-	//	//}
-	//	//fmt.Printf("\nThere are %d pods in namespaces %s\n", len(pods.Items), namespce)
-	//	//for _, pod := range pods.Items {
-	//	//	fmt.Printf("Name: %s, Status: %s, CreateTime: %s\n", pod.ObjectMeta.Name, pod.Status.Phase, pod.ObjectMeta.CreationTimestamp)
-	//	//}
-	//	//
-	//	//// 获取所有的 Namespaces 列表信息
-	//	//ns, err := clientset.CoreV1().Namespaces().List(metav1.ListOptions{})
-	//	//if err != nil {
-	//	//	panic(err)
-	//	//}
-	//	//nss := ns.Items
-	//	//fmt.Printf("\nThere are %d namespaces in cluster\n", len(nss))
-	//	//for _, ns := range nss {
-	//	//	fmt.Printf("Name: %s, Status: %s, CreateTime: %s\n", ns.ObjectMeta.Name, ns.Status.Phase, ns.CreationTimestamp)
-	//	//}
-	//
-	//	//time.Sleep(10 * time.Second)
-	//	break
-	//}
-
-	//testNs()
-	//getNode()
+	getNode()
 }
 
 func getPodLogs(namespace, name string) string {
@@ -377,31 +213,45 @@ func getNode() {
 	if err != nil {
 		panic(err)
 	}
-	node := nodes.Items[1]
-	fmt.Println(node)
-	desc, _ := node.Descriptor()
-	fmt.Println(string(desc))
-	name := nodes.Items[2].Name
-	for _, nds := range nodes.Items {
-		fmt.Printf("NodeName: %s\n", nds.Name)
-	}
 
-	//获取 指定NODE 的详细信息
-	fmt.Println("\n ####### node详细信息 ######")
-	nodeRel, err := clientset.CoreV1().Nodes().Get(name, metav1.GetOptions{})
-	if err != nil {
-		panic(err)
+	var storge int64
+	//var storgeUser int64
+	for _, node := range nodes.Items {
+		mc, err := metrics.MetricsV1beta1().NodeMetricses().Get(node.GetName(), metav1.GetOptions{})
+		if err != nil {
+			break
+		}
+		storgeUser := mc.Usage.StorageEphemeral().String()
+		fmt.Println(storgeUser)
+		storge += node.Status.Capacity.StorageEphemeral().Value()
 	}
-	fmt.Printf("Name: %s \n", nodeRel.Name)
-	fmt.Printf("CreateTime: %s \n", nodeRel.CreationTimestamp)
-	fmt.Printf("NowTime: %s \n", nodeRel.Status.Conditions[0].LastHeartbeatTime)
-	fmt.Printf("kernelVersion: %s \n", nodeRel.Status.NodeInfo.KernelVersion)
-	fmt.Printf("SystemOs: %s \n", nodeRel.Status.NodeInfo.OSImage)
-	fmt.Printf("Cpu: %s \n", nodeRel.Status.Capacity.Cpu())
-	fmt.Printf("docker: %s \n", nodeRel.Status.NodeInfo.ContainerRuntimeVersion)
-	// fmt.Printf("Status: %s \n", nodeRel.Status.Conditions[len(nodes.Items[0].Status.Conditions)-1].Type)
-	fmt.Printf("Status: %s \n", nodeRel.Status.Conditions[len(nodeRel.Status.Conditions)-1].Type)
-	fmt.Printf("Mem: %s \n", nodeRel.Status.Allocatable.Memory().String())
+	fmt.Println(storge)
+	//fmt.Println(storgeUser)
+	//node := nodes.Items[1]
+	//fmt.Println(node)
+	//desc, _ := node.Descriptor()
+	//fmt.Println(string(desc))
+	//name := nodes.Items[2].Name
+	//for _, nds := range nodes.Items {
+	//	fmt.Printf("NodeName: %s\n", nds.Name)
+	//}
+	//
+	////获取 指定NODE 的详细信息
+	//fmt.Println("\n ####### node详细信息 ######")
+	//nodeRel, err := clientset.CoreV1().Nodes().Get(name, metav1.GetOptions{})
+	//if err != nil {
+	//	panic(err)
+	//}
+	//fmt.Printf("Name: %s \n", nodeRel.Name)
+	//fmt.Printf("CreateTime: %s \n", nodeRel.CreationTimestamp)
+	//fmt.Printf("NowTime: %s \n", nodeRel.Status.Conditions[0].LastHeartbeatTime)
+	//fmt.Printf("kernelVersion: %s \n", nodeRel.Status.NodeInfo.KernelVersion)
+	//fmt.Printf("SystemOs: %s \n", nodeRel.Status.NodeInfo.OSImage)
+	//fmt.Printf("Cpu: %s \n", nodeRel.Status.Capacity.Cpu())
+	//fmt.Printf("docker: %s \n", nodeRel.Status.NodeInfo.ContainerRuntimeVersion)
+	//// fmt.Printf("Status: %s \n", nodeRel.Status.Conditions[len(nodes.Items[0].Status.Conditions)-1].Type)
+	//fmt.Printf("Status: %s \n", nodeRel.Status.Conditions[len(nodeRel.Status.Conditions)-1].Type)
+	//fmt.Printf("Mem: %s \n", nodeRel.Status.Allocatable.Memory().String())
 
 }
 
@@ -591,4 +441,145 @@ func DynamicDeploy() {
 	enc.SetIndent("", "    ")
 	enc.Encode(obj)
 
+}
+
+func Otherer() {
+	//mc, err := metricsv.NewForConfig(config)
+	//nodeMetrics, err := mc.MetricsV1beta1().NodeMetricses().List(metav1.ListOptions{})
+	////podInfo,err := mc.MetricsV1beta1().PodMetricses("lgy").Get("nginx-v1", metav1.GetOptions{})
+	////mc.MetricsV1beta1().NodeMetricses().List(metav1.ListOptions{})
+	//nodes, err := clientset.CoreV1().Nodes().List(metav1.ListOptions{})
+	//for _, info := range nodeMetrics.Items {
+	//	for _, nodeRel := range nodes.Items {
+	//		if nodeRel.GetName() == info.GetName() {
+	//			fmt.Println("=========================================")
+	//			fmt.Println("node name:", nodeRel.GetName())
+	//			//fmt.Println(nodeRel.Status.Allocatable.Memory().Value())
+	//			//fmt.Println(nodeRel.Status.Capacity.Memory().Value())
+	//			//memNum := nodeRel.Status.Capacity.Memory().Value()
+	//			//memNumValue := decimal.NewFromInt(memNum)
+	//			//memNumValue = memNumValue.Div(decimal.NewFromInt(1024)).Div(decimal.NewFromInt(1024)).DivRound(decimal.NewFromInt(1024),2)
+	//			//fmt.Println(memNumValue.Float64())
+	//			//fmt.Println(info.Usage.Memory().Value())
+	//			//memNum = info.Usage.Memory().Value()
+	//			//umemNumValue := decimal.NewFromInt(memNum)
+	//			//umemNumValue = umemNumValue.Div(decimal.NewFromInt(1024)).Div(decimal.NewFromInt(1024)).DivRound(decimal.NewFromInt(1024),2)
+	//			//fmt.Println(umemNumValue.Float64())
+	//			//fmt.Println(umemNumValue.DivRound(memNumValue,2).Float64())
+	//			//fmt.Println("=========================================")
+	//			fmt.Println(nodeRel.Status.Allocatable.Cpu().MilliValue())
+	//			fmt.Println(nodeRel.Status.Allocatable.Cpu().Value())
+	//			fmt.Println(nodeRel.Status.Capacity.Cpu().MilliValue())
+	//			fmt.Println(nodeRel.Status.Capacity.Cpu().Value())
+	//			fmt.Println(info.Usage.Cpu().MilliValue())
+	//			fmt.Println(info.Usage.Cpu().Value())
+	//			fmt.Println()
+	//			fmt.Println()
+	//			fmt.Println()
+	//			break
+	//		}
+	//	}
+	//}
+
+	//podsMetrics, err := mc.MetricsV1beta1().PodMetricses("istio-system").Get("jaeger-operator-bdbb4954b-9zmnt", metav1.GetOptions{})
+	//fmt.Println(err)
+	//fmt.Println(podsMetrics.Containers[0].Usage.Memory().Value() / 1024 / 1024)
+	//fmt.Println(podsMetrics.Containers[0].Usage.Cpu().MilliValue())
+	//fmt.Println()
+
+	//mc.MetricsV1beta1().PodMetricses(metav1.NamespaceAll).List(metav1.ListOptions{})
+	//mc.MetricsV1beta1().PodMetricses(metav1.NamespaceAll).Get("your pod name", metav1.GetOptions{})
+
+	//DeployMent()
+	//DynamicDeploy()
+	// 通过实现 clientset 的 CoreV1Interface 接口列表中的 PodsGetter 接口方法 Pods(namespace string)返回 PodInterface
+	// PodInterface 接口拥有操作 Pod 资源的方法，例如 Create、Update、Get、List 等方法
+	// 注意：Pods() 方法中 namespace 不指定则获取 Cluster 所有 Pod 列表
+
+	//nodes,err := clientset.CoreV1().Nodes().List(metav1.ListOptions{})
+	//fmt.Println(err)
+	//fmt.Println(nodes)
+	//pods, err := clientset.CoreV1().Pods("").List(metav1.ListOptions{})
+	//if err != nil {
+	//	panic(err.Error())
+	//}
+	//fmt.Printf("There are %d pods in the k8s cluster\n", len(pods.Items))
+
+	// 获取指定 namespace 中的 Pod 列表信息
+	//namespace := "kubesphere-monitoring-system"
+	//pods, err = clientset.CoreV1().Pods(namespace).List(metav1.ListOptions{})
+	//if err != nil {
+	//	panic(err)
+	//}
+	//fmt.Printf("\nThere are %d pods in namespaces %s\n", len(pods.Items), namespace)
+	//for _, pod := range pods.Items {
+	//	fmt.Printf("Name: %s, Status: %s, CreateTime: %s\n", pod.ObjectMeta.Name, pod.Status.Phase, pod.ObjectMeta.CreationTimestamp)
+	//}
+	//time.Sleep(10 * time.Second)
+
+	//for {
+	//	// 通过实现 clientset 的 CoreV1Interface 接口列表中的 PodsGetter 接口方法 Pods(namespace string)返回 PodInterface
+	//	// PodInterface 接口拥有操作 Pod 资源的方法，例如 Create、Update、Get、List 等方法
+	//	// 注意：Pods() 方法中 namespace 不指定则获取 Cluster 所有 Pod 列表
+	//	pods, err := clientset.CoreV1().Pods("").List(metav1.ListOptions{})
+	//	if err != nil {
+	//		panic(err.Error())
+	//	}
+	//	fmt.Printf("There are %d pods in the k8s cluster\n", len(pods.Items))
+	//	var (
+	//		node1 int
+	//		node2 int
+	//		node3 int
+	//		master int
+	//		total int
+	//		failed int
+	//	)
+	//	for _, pod := range pods.Items {
+	//		if pod.Status.Phase != apiv1.PodRunning{
+	//			fmt.Println("node:",pod.Spec.NodeName," podName:",pod.Name, " podStatus:",pod.Status.Phase)
+	//			failed++
+	//			continue
+	//		}
+	//		switch pod.Spec.NodeName {
+	//		case "node1":
+	//			node1++
+	//		case "node2":
+	//			node2++
+	//		case "node3":
+	//			node3++
+	//		case "master":
+	//			master++
+	//		}
+	//		total++
+	//	}
+	//	fmt.Printf("master: %d node1: %d node2: %d node3: %d total: %d failed: %d",master,node1,node2,node3,total,failed)
+	//
+	//	// 获取指定 namespace 中的 Pod 列表信息
+	//	//namespce := "kubesphere-monitoring-system"
+	//	//pods, err = clientset.CoreV1().Pods(namespce).List(metav1.ListOptions{})
+	//	//if err != nil {
+	//	//	panic(err)
+	//	//}
+	//	//fmt.Printf("\nThere are %d pods in namespaces %s\n", len(pods.Items), namespce)
+	//	//for _, pod := range pods.Items {
+	//	//	fmt.Printf("Name: %s, Status: %s, CreateTime: %s\n", pod.ObjectMeta.Name, pod.Status.Phase, pod.ObjectMeta.CreationTimestamp)
+	//	//}
+	//	//
+	//	//// 获取所有的 Namespaces 列表信息
+	//	//ns, err := clientset.CoreV1().Namespaces().List(metav1.ListOptions{})
+	//	//if err != nil {
+	//	//	panic(err)
+	//	//}
+	//	//nss := ns.Items
+	//	//fmt.Printf("\nThere are %d namespaces in cluster\n", len(nss))
+	//	//for _, ns := range nss {
+	//	//	fmt.Printf("Name: %s, Status: %s, CreateTime: %s\n", ns.ObjectMeta.Name, ns.Status.Phase, ns.CreationTimestamp)
+	//	//}
+	//
+	//	//time.Sleep(10 * time.Second)
+	//	break
+	//}
+
+	//testNs()
+	//getNode()
 }

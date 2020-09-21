@@ -14,6 +14,7 @@ type Endpoints struct {
 	DeploymentEndpoint  endpoint.Endpoint
 	StatefulSetEndpoint endpoint.Endpoint
 	ServiceEndpoint     endpoint.Endpoint
+	GetYamlEndpoint     endpoint.Endpoint
 }
 
 // NewEndpoints return a *Endpoints
@@ -29,5 +30,6 @@ func NewEndpoints(svc Service) Endpoints {
 		DeploymentEndpoint:  MakeDeploymentEndpoint(svc),
 		StatefulSetEndpoint: MakeStatefulSetEndpoint(svc),
 		ServiceEndpoint:     MakeServiceEndpoint(svc),
+		GetYamlEndpoint:     MakeGetYamlEndpoint(svc),
 	}
 }

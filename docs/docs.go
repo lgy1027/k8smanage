@@ -102,6 +102,60 @@ var doc = `{
                 }
             }
         },
+        "/cluster/v1/getYaml": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "获取资源详细配置",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "命名空间名 名字",
+                        "name": "namespace",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "资源类型",
+                        "name": "kind",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "资源名",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"errno\":0,\"errmsg\":\"\",\"data\":{},\"extr\":{\"inner_error\":\"\",\"error_stack\":\"\"}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/cluster.GetYamlResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/cluster/v1/namespace": {
             "post": {
                 "consumes": [
@@ -428,6 +482,45 @@ var doc = `{
                 }
             }
         },
+        "/cluster/v1/uploadYaml": {
+            "get": {
+                "consumes": [
+                    "application/octet-stream"
+                ],
+                "summary": "下载yaml文件",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "命名空间名 名字",
+                        "name": "namespace",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "资源类型",
+                        "name": "kind",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "资源名",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/resource/v1/namespace/create": {
             "post": {
                 "consumes": [
@@ -605,6 +698,15 @@ var doc = `{
                     "items": {
                         "$ref": "#/definitions/model.DeploymentDetail"
                     }
+                }
+            }
+        },
+        "cluster.GetYamlResponse": {
+            "type": "object",
+            "properties": {
+                "yaml": {
+                    "type": "object",
+                    "additionalProperties": true
                 }
             }
         },
@@ -965,10 +1067,8 @@ var doc = `{
                 "namespace": {
                     "type": "string"
                 },
-                "spec": {
-                    "type": "string"
-                },
                 "status": {
+                    "description": "Spec      appsv1.DeploymentSpec   ` + "`" + `json:\"spec,omitempty\"` + "`" + `",
                     "type": "string"
                 }
             }
@@ -1255,10 +1355,8 @@ var doc = `{
                 "namespace": {
                     "type": "string"
                 },
-                "spec": {
-                    "type": "string"
-                },
                 "status": {
+                    "description": "Spec      v1.ServiceSpec   ` + "`" + `json:\"spec,omitempty\"` + "`" + `",
                     "type": "string"
                 }
             }
@@ -1277,10 +1375,8 @@ var doc = `{
                 "namespace": {
                     "type": "string"
                 },
-                "spec": {
-                    "type": "string"
-                },
                 "status": {
+                    "description": "Spec      appsv1.StatefulSetSpec   ` + "`" + `json:\"spec,omitempty\"` + "`" + `",
                     "type": "string"
                 }
             }

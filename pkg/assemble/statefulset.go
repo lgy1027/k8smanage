@@ -18,8 +18,8 @@ func AssembleStatefulSet(namespace string, stats []appsv1.StatefulSet) []model.S
 			Kind:      utils.DEPLOY_Service,
 			Namespace: stat.GetNamespace(),
 			Name:      stat.GetName(),
-			Spec:      stat.Spec,
-			Status:    stat.Status,
+			//Spec:      stat.Spec,
+			Status: stat.Status,
 		})
 	}
 	return statList

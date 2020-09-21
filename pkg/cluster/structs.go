@@ -129,3 +129,13 @@ type ServiceResponse struct {
 	// @description 有状态资源列表
 	Items []model.ServiceDetail `json:"items"`
 }
+
+type GetYamlRequest struct {
+	Kind      string `query:"kind"`
+	Namespace string `query:"namespace"`
+	Name      string `query:"name"`
+}
+
+type GetYamlResponse struct {
+	Yaml map[string]interface{} `json:"yaml,omitempty"`
+}

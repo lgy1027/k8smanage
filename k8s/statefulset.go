@@ -35,6 +35,10 @@ func (ssf *Sf) Create(namespace string, yaml *appsv1.StatefulSet) (*appsv1.State
 	return inital.GetGlobal().GetClientSet().AppsV1().StatefulSets(namespace).Create(yaml)
 }
 
+func (ssf *Sf) DynamicGet(namespace string, name string) (*unstructured.Unstructured, error) {
+	return inital.GetGlobal().GetResourceClient(utils.STATEFULSET).Namespace(namespace).Get(name, metav1.GetOptions{})
+}
+
 func (ssf *Sf) DynamicCreate(namespace string, yaml *unstructured.Unstructured) (*unstructured.Unstructured, error) {
 	return inital.GetGlobal().GetResourceClient(utils.STATEFULSET).Namespace(namespace).Create(yaml, metav1.CreateOptions{})
 }

@@ -13,6 +13,12 @@ definitions:
           $ref: '#/definitions/model.DeploymentDetail'
         type: array
     type: object
+  cluster.GetYamlResponse:
+    properties:
+      yaml:
+        additionalProperties: true
+        type: object
+    type: object
   cluster.NameSpacesRequest:
     properties:
       namespace:
@@ -280,9 +286,8 @@ definitions:
         type: string
       namespace:
         type: string
-      spec:
-        type: string
       status:
+        description: Spec      appsv1.DeploymentSpec   `json:"spec,omitempty"`
         type: string
     type: object
   model.EventData:
@@ -488,9 +493,8 @@ definitions:
         type: string
       namespace:
         type: string
-      spec:
-        type: string
       status:
+        description: Spec      v1.ServiceSpec   `json:"spec,omitempty"`
         type: string
     type: object
   model.StatefulSetDetail:
@@ -503,9 +507,8 @@ definitions:
         type: string
       namespace:
         type: string
-      spec:
-        type: string
       status:
+        description: Spec      appsv1.StatefulSetSpec   `json:"spec,omitempty"`
         type: string
     type: object
   protocol.Response:
@@ -581,6 +584,39 @@ paths:
                   $ref: '#/definitions/cluster.ClusterResponse'
               type: object
       summary: 获取集群信息
+  /cluster/v1/getYaml:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 命名空间名 名字
+        in: query
+        name: namespace
+        required: true
+        type: string
+      - description: 资源类型
+        in: query
+        name: kind
+        required: true
+        type: string
+      - description: 资源名
+        in: query
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/cluster.GetYamlResponse'
+              type: object
+      summary: 获取资源详细配置
   /cluster/v1/namespace:
     post:
       consumes:
@@ -767,6 +803,32 @@ paths:
                   $ref: '#/definitions/cluster.StatefulSetsResponse'
               type: object
       summary: 获取statefulSet
+  /cluster/v1/uploadYaml:
+    get:
+      consumes:
+      - application/octet-stream
+      parameters:
+      - description: 命名空间名 名字
+        in: query
+        name: namespace
+        required: true
+        type: string
+      - description: 资源类型
+        in: query
+        name: kind
+        required: true
+        type: string
+      - description: 资源名
+        in: query
+        name: name
+        required: true
+        type: string
+      responses:
+        "200":
+          description: success
+          schema:
+            type: string
+      summary: 下载yaml文件
   /resource/v1/namespace/create:
     post:
       consumes:

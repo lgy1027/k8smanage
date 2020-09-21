@@ -3,6 +3,7 @@ package cluster
 import (
 	"net/http"
 	"relaper.com/kubemanage/inital"
+	"relaper.com/kubemanage/pkg/file"
 	"relaper.com/kubemanage/protocol"
 
 	"github.com/go-kit/kit/auth/jwt"
@@ -109,6 +110,14 @@ func MakeRouter(endpoints Endpoints, options ...httptransport.ServerOption) http
 			protocol.EncodeHTTPGenericResponse,
 			opts...,
 		))
+
+		v1.Handle("/getYaml", httptransport.NewServer(
+			endpoints.GetYamlEndpoint,
+			protocol.LogRequest(protocol.MakeDecodeHTTPRequest(func() interface{} { return &GetYamlRequest{} })),
+			protocol.EncodeHTTPGenericResponse,
+			opts...,
+		))
+		v1.HandleFunc("/uploadYaml", file.HandleDownload)
 	}
 	return r
 }
