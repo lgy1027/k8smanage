@@ -64,7 +64,7 @@ type DeployRequest struct {
 	// @description 容器暴露端口
 	PodPort []apiv1.ContainerPort `json:"podPort"`
 	// @description 资源限制
-	Resources apiv1.ResourceRequirements `json:"resources"`
+	Resources *apiv1.ResourceRequirements `json:"resources"`
 
 	// @description 容器启动执行的命令
 	Command []string `json:"command"`
@@ -156,7 +156,7 @@ type ExpansionRequest struct {
 	// @description 扩容大小
 	Replicas int32 `json:"replicas"`
 	// @description 资源限制
-	Resources apiv1.ResourceRequirements `json:"resources"`
+	Resources *apiv1.ResourceRequirements `json:"resources"`
 	// @description 镜像
 	ImagePull string `json:"imagePull"`
 }
@@ -165,6 +165,9 @@ func (r *ExpansionRequest) Validate() error {
 	r.Kind = strings.TrimSpace(r.Kind)
 	r.Name = strings.TrimSpace(r.Name)
 	r.Namespace = strings.TrimSpace(r.Namespace)
+	if r.Kind == "" || r.Name == "" || r.Namespace == "" {
+		return errors.New("资源类型 | 资源名 | 命名空间 为必填项")
+	}
 	r.ImagePull = strings.TrimSpace(r.ImagePull)
 	return nil
 }

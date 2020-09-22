@@ -40,9 +40,9 @@ func ExpandDeployment(req *DeployRequest) *appsv1.Deployment {
 				Spec: apiv1.PodSpec{
 					Containers: []apiv1.Container{
 						{
-							Name:            req.PodName,
-							Image:           req.Image,
-							Resources:       req.Resources,
+							Name:  req.PodName,
+							Image: req.Image,
+							//Resources:       *req.Resources,
 							Command:         req.Command,
 							Args:            req.Args,
 							ImagePullPolicy: req.ImagePullPolicy, // PullAlways PullPolicy = "Always"  PullNever PullPolicy = "Never"  PullIfNotPresent PullPolicy = "IfNotPresent"
@@ -66,6 +66,9 @@ func ExpandDeployment(req *DeployRequest) *appsv1.Deployment {
 		deployment.Spec.Selector = &metav1.LabelSelector{
 			MatchLabels: req.MatchLabels,
 		}
+	}
+	if req.Resources != nil {
+		deployment.Spec.Template.Spec.Containers[0].Resources = *req.Resources
 	}
 	if req.Replicas > 0 {
 		deployment.Spec.Replicas = int32Ptr(req.Replicas)
@@ -113,9 +116,9 @@ func ExpandStatefulSets(req *DeployRequest) *appsv1.StatefulSet {
 				Spec: apiv1.PodSpec{
 					Containers: []apiv1.Container{
 						{
-							Name:            req.PodName,
-							Image:           req.Image,
-							Resources:       req.Resources,
+							Name:  req.PodName,
+							Image: req.Image,
+							//Resources:       *req.Resources,
 							Command:         req.Command,
 							Args:            req.Args,
 							ImagePullPolicy: req.ImagePullPolicy, // PullAlways PullPolicy = "Always"  PullNever PullPolicy = "Never"  PullIfNotPresent PullPolicy = "IfNotPresent"
@@ -139,6 +142,9 @@ func ExpandStatefulSets(req *DeployRequest) *appsv1.StatefulSet {
 		statefulSet.Spec.Selector = &metav1.LabelSelector{
 			MatchLabels: req.MatchLabels,
 		}
+	}
+	if req.Resources != nil {
+		statefulSet.Spec.Template.Spec.Containers[0].Resources = *req.Resources
 	}
 	if req.Replicas > 0 {
 		statefulSet.Spec.Replicas = int32Ptr(req.Replicas)
@@ -254,10 +260,9 @@ func ExpandObject(req *DeployRequest) *unstructured.Unstructured {
 							"volumeMounts":    ExpandVolumeMounts(req.VolumeMounts),
 							"command":         req.Command,
 							"workingDir":      req.WorkingDir,
-							"resources": map[string]interface{}{
-								"limits":   req.Resources.Limits,
-								"requests": req.Resources.Requests,
-							},
+							//"resources": map[string]interface{}{
+							//
+							//},
 						},
 					},
 					//"volumes":				   ExpandVolumes(req.Volumes),
@@ -278,6 +283,13 @@ func ExpandObject(req *DeployRequest) *unstructured.Unstructured {
 
 	if len(req.VolumeMounts) > 0 {
 		conf["spec"].(map[string]interface{})["template"].(map[string]interface{})["spec"].(map[string]interface{})["containers"].([]map[string]interface{})[0]["volumeMounts"] = ExpandVolumeMounts(req.VolumeMounts)
+	}
+
+	if req.Resources != nil {
+		conf["spec"].(map[string]interface{})["template"].(map[string]interface{})["spec"].(map[string]interface{})["containers"].([]map[string]interface{})[0]["resources"] = map[string]interface{}{
+			"limits":   req.Resources.Limits,
+			"requests": req.Resources.Requests,
+		}
 	}
 
 	if req.StatefulSetUpdateStrategyType != "" {

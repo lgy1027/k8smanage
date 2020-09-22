@@ -62,9 +62,13 @@ func HandleDownload(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		return
 	}
+	fileName := "default"
+	if filename, ok := obj.Object["metadata"].(map[string]interface{})["name"]; ok {
+		fileName = filename.(string)
+	}
 	//将文件写至responseBody
 	w.Header().Set("Access-Control-Allow-Origin", "*") //允许访问所有域
 	w.Header().Add("Content-type", "application/octet-stream")
-	w.Header().Add("content-disposition", "attachment; filename=default.yaml")
+	w.Header().Add("content-disposition", "attachment; filename="+fileName+".yaml")
 	_, _ = w.Write(data)
 }

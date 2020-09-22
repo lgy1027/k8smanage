@@ -6,6 +6,7 @@ import (
 	k8serror "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/client-go/util/retry"
 	"relaper.com/kubemanage/inital"
 	"relaper.com/kubemanage/utils"
 )
@@ -57,4 +58,12 @@ func (ssf *Sf) Exist(namespace, name string) (*appsv1.StatefulSet, bool, error) 
 		return nil, false, errors.New(err.Error())
 	}
 	return deploy, true, nil
+}
+
+func (ssf *Sf) Update(namespace string, result *appsv1.StatefulSet) error {
+	retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		_, updateErr := inital.GetGlobal().GetClientSet().AppsV1().StatefulSets(namespace).Update(result)
+		return updateErr
+	})
+	return PrintErr(retryErr)
 }

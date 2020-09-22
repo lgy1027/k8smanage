@@ -5,6 +5,7 @@ import (
 	"fmt"
 	log "github.com/cihub/seelog"
 	"github.com/pkg/errors"
+	v1 "k8s.io/api/apps/v1"
 	app "relaper.com/kubemanage/cache"
 	"relaper.com/kubemanage/inital"
 	"relaper.com/kubemanage/inital/client"
@@ -214,6 +215,12 @@ func (dm *deployService) DeleteNs(ctx context.Context, req *NamespaceRequest) (*
 	return nil, err
 }
 
+// @Summary  删除命名空间
+// @Produce  json
+// @Accept   json
+// @Param   params body ExpansionRequest true "参数"
+// @Success 200 {string} json "{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}"
+// @Router /resource/v1/resource/expansion [post]
 func (dm *deployService) Expansion(ctx context.Context, req *ExpansionRequest) (*ExpansionResponse, error) {
 	var (
 		deploy interface{}
@@ -234,8 +241,36 @@ func (dm *deployService) Expansion(ctx context.Context, req *ExpansionRequest) (
 	if !flag {
 		return nil, errors.New("应用不存在")
 	}
-	if req.Replicas > 0 {
-		fmt.Println(deploy)
+
+	switch req.Kind {
+	case utils.DEPLOY_DEPLOYMENT:
+		dep := deploy.(*v1.Deployment)
+		if req.Replicas > 0 {
+			dep.Spec.Replicas = int32Ptr(req.Replicas)
+		}
+
+		if req.ImagePull != "" {
+			dep.Spec.Template.Spec.Containers[0].Image = req.ImagePull
+		}
+
+		if req.Resources != nil {
+			dep.Spec.Template.Spec.Containers[0].Resources = *req.Resources
+		}
+		err = client.GetBaseClient().Deployment.Update(req.Namespace, dep)
+	case utils.DEPLOY_STATEFULSET:
+		dep := deploy.(*v1.StatefulSet)
+		if req.Replicas > 0 {
+			dep.Spec.Replicas = int32Ptr(req.Replicas)
+		}
+
+		if req.ImagePull != "" {
+			dep.Spec.Template.Spec.Containers[0].Image = req.ImagePull
+		}
+
+		if req.Resources != nil {
+			dep.Spec.Template.Spec.Containers[0].Resources = *req.Resources
+		}
+		err = client.GetBaseClient().Sf.Update(req.Namespace, dep)
 	}
-	return nil, nil
+	return &ExpansionResponse{}, err
 }
