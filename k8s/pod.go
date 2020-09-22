@@ -15,11 +15,11 @@ func NewPod() *Pod {
 	return &Pod{}
 }
 
-func (pos *Pod) Get(namespace, name string) (interface{}, error) {
+func (pos *Pod) Get(namespace, name string) (*apiv1.Pod, error) {
 	return inital.GetGlobal().GetClientSet().CoreV1().Pods(namespace).Get(name, metav1.GetOptions{})
 }
 
-func (pos *Pod) List(namespace string) (interface{}, error) {
+func (pos *Pod) List(namespace string) (*apiv1.PodList, error) {
 	return inital.GetGlobal().GetClientSet().CoreV1().Pods(namespace).List(metav1.ListOptions{})
 }
 

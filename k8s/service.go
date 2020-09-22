@@ -16,11 +16,11 @@ func NewSv() *Sv {
 	return &Sv{}
 }
 
-func (sv *Sv) List(namespace string) (interface{}, error) {
+func (sv *Sv) List(namespace string) (*apiv1.ServiceList, error) {
 	return inital.GetGlobal().GetClientSet().CoreV1().Services(namespace).List(metav1.ListOptions{})
 }
 
-func (sv *Sv) Get(namespace, name string) (interface{}, error) {
+func (sv *Sv) Get(namespace, name string) (*apiv1.Service, error) {
 	return inital.GetGlobal().GetClientSet().CoreV1().Services(namespace).Get(name, metav1.GetOptions{})
 }
 

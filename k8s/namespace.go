@@ -12,15 +12,15 @@ func NewNs() *Ns {
 	return &Ns{}
 }
 
-func (ns *Ns) List(namespace string) (interface{}, error) {
+func (ns *Ns) List(namespace string) (*apiv1.NamespaceList, error) {
 	return inital.GetGlobal().GetClientSet().CoreV1().Namespaces().List(metav1.ListOptions{})
 }
 
-func (ns *Ns) Get(namespace, name string) (interface{}, error) {
+func (ns *Ns) Get(namespace, name string) (*apiv1.Namespace, error) {
 	return inital.GetGlobal().GetClientSet().CoreV1().Namespaces().Get(namespace, metav1.GetOptions{})
 }
 
-func (ns *Ns) Create(name string) (interface{}, error) {
+func (ns *Ns) Create(name string) (*apiv1.Namespace, error) {
 	namespace := &apiv1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,

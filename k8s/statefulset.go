@@ -16,7 +16,7 @@ func NewStateFulSet() *Sf {
 	return &Sf{}
 }
 
-func (ssf *Sf) Get(namespace, name string) (interface{}, error) {
+func (ssf *Sf) Get(namespace, name string) (*appsv1.StatefulSet, error) {
 	return inital.GetGlobal().GetClientSet().AppsV1().StatefulSets(namespace).Get(name, metav1.GetOptions{})
 }
 
@@ -27,7 +27,7 @@ func (ssf *Sf) Delete(namespace, name string) error {
 	})
 }
 
-func (ssf *Sf) List(namespace string) (interface{}, error) {
+func (ssf *Sf) List(namespace string) (*appsv1.StatefulSetList, error) {
 	return inital.GetGlobal().GetClientSet().AppsV1().StatefulSets(namespace).List(metav1.ListOptions{})
 }
 

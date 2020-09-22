@@ -146,6 +146,31 @@ func (r *DeleteRequest) Validate() error {
 
 type DeleteResponse struct{}
 
+type ExpansionRequest struct {
+	// @description 资源类型 可选 Deployment | StatefulSet | Service
+	Kind string `json:"kind"`
+	// @description 命名空间
+	Namespace string `json:"namespace"`
+	// @description 资源名称
+	Name string `json:"name"`
+	// @description 扩容大小
+	Replicas int32 `json:"replicas"`
+	// @description 资源限制
+	Resources apiv1.ResourceRequirements `json:"resources"`
+	// @description 镜像
+	ImagePull string `json:"imagePull"`
+}
+
+func (r *ExpansionRequest) Validate() error {
+	r.Kind = strings.TrimSpace(r.Kind)
+	r.Name = strings.TrimSpace(r.Name)
+	r.Namespace = strings.TrimSpace(r.Namespace)
+	r.ImagePull = strings.TrimSpace(r.ImagePull)
+	return nil
+}
+
+type ExpansionResponse struct{}
+
 type NamespaceRequest struct {
 	// @description 命名空间
 	Namespace string `json:"namespace"`

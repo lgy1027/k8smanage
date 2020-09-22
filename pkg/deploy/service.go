@@ -7,34 +7,26 @@ import (
 	"github.com/pkg/errors"
 	app "relaper.com/kubemanage/cache"
 	"relaper.com/kubemanage/inital"
+	"relaper.com/kubemanage/inital/client"
 	k8s2 "relaper.com/kubemanage/k8s"
 	"relaper.com/kubemanage/utils"
 )
 
 type Service interface {
 	Deploy(ctx context.Context, req *DeployRequest) (*DeploymentResponse, error)
-	UploadDeploy(ctx context.Context, request *UploadRequest) (*UploadResponse, error)
+	UploadDeploy(ctx context.Context, req *UploadRequest) (*UploadResponse, error)
 	Delete(ctx context.Context, req *DeleteRequest) (*DeleteResponse, error)
+	Expansion(ctx context.Context, req *ExpansionRequest) (*ExpansionResponse, error)
 	CreateNs(ctx context.Context, req *NamespaceRequest) (*NamespaceResponse, error)
 	DeleteNs(ctx context.Context, req *NamespaceRequest) (*NamespaceResponse, error)
 }
 
 // NewService return a Service interface
 func NewService() Service {
-	return &deployService{
-		Deployment:  k8s2.NewDeploy(),
-		Sv:          k8s2.NewSv(),
-		StateFulSet: k8s2.NewStateFulSet(),
-		Namespace:   k8s2.NewNs(),
-	}
+	return &deployService{}
 }
 
-type deployService struct {
-	Deployment  *k8s2.Deployment
-	Sv          *k8s2.Sv
-	StateFulSet *k8s2.Sf
-	Namespace   *k8s2.Ns
-}
+type deployService struct{}
 
 /*
 {
@@ -80,26 +72,26 @@ func (dm *deployService) Deploy(ctx context.Context, req *DeployRequest) (*Deplo
 	var err error
 	switch req.Kind {
 	case utils.DEPLOY_DEPLOYMENT:
-		_, exist, _ := dm.Deployment.Exist(req.Namespace, req.Name)
+		_, exist, _ := client.GetBaseClient().Deployment.Exist(req.Namespace, req.Name)
 		if exist {
 			return nil, fmt.Errorf("应用已存在, Kind:%s, Name: %s, namespace:%s", "Deployment", req.Name, req.Namespace)
 		}
 		deployment := ExpandDeployment(req)
-		_, err = dm.Deployment.Create(req.Namespace, deployment)
+		_, err = client.GetBaseClient().Deployment.Create(req.Namespace, deployment)
 	case utils.DEPLOY_STATEFULSET:
-		_, exist, _ := dm.StateFulSet.Exist(req.Namespace, req.Name)
+		_, exist, _ := client.GetBaseClient().Sf.Exist(req.Namespace, req.Name)
 		if exist {
 			return nil, fmt.Errorf("应用已存在, Kind:%s, Name: %s, namespace:%s", "StatefulSet", req.Name, req.Namespace)
 		}
 		statefulSets := ExpandStatefulSets(req)
-		_, err = dm.StateFulSet.Create(req.Namespace, statefulSets)
+		_, err = client.GetBaseClient().Sf.Create(req.Namespace, statefulSets)
 	case utils.DEPLOY_Service:
-		_, exist, _ := dm.Sv.Exist(req.Namespace, req.Name)
+		_, exist, _ := client.GetBaseClient().Sv.Exist(req.Namespace, req.Name)
 		if exist {
 			return nil, fmt.Errorf("应用已存在, Kind:%s, Name: %s, namespace:%s", "Service", req.Name, req.Namespace)
 		}
 		service := ExpandService(req)
-		_, err = dm.Sv.Create(req.Namespace, service)
+		_, err = client.GetBaseClient().Sv.Create(req.Namespace, service)
 	default:
 		return nil, errors.New("资源类型不存在，可选 Deployment | StatefulSet | Service")
 	}
@@ -109,7 +101,7 @@ func (dm *deployService) Deploy(ctx context.Context, req *DeployRequest) (*Deplo
 	}
 	if req.CreateService {
 		service := ExpandService(req)
-		_, err := dm.Sv.Create(req.Namespace, service)
+		_, err := client.GetBaseClient().Sv.Create(req.Namespace, service)
 		if err != nil {
 			err = k8s2.PrintErr(err)
 			return nil, err
@@ -144,23 +136,23 @@ func (dm *deployService) UploadDeploy(ctx context.Context, req *UploadRequest) (
 			var errs error
 			switch kind {
 			case utils.DEPLOY_DEPLOYMENT:
-				_, exist, _ := dm.Deployment.Exist(namespace, name)
+				_, exist, _ := client.GetBaseClient().Deployment.Exist(namespace, name)
 				if exist {
 					return nil, fmt.Errorf("应用已存在, Kind:%s, Name: %s, namespace:%s", kind, name, namespace)
 				}
-				_, errs = dm.Deployment.DynamicCreateForCustom(namespace, apiVersion, obj)
+				_, errs = client.GetBaseClient().Deployment.DynamicCreateForCustom(namespace, apiVersion, obj)
 			case utils.DEPLOY_STATEFULSET:
-				_, exist, _ := dm.StateFulSet.Exist(namespace, name)
+				_, exist, _ := client.GetBaseClient().Sf.Exist(namespace, name)
 				if exist {
 					return nil, fmt.Errorf("应用已存在, Kind:%s, Name: %s, namespace:%s", kind, name, namespace)
 				}
-				_, errs = dm.StateFulSet.DynamicCreateForCustom(namespace, apiVersion, obj)
+				_, errs = client.GetBaseClient().Sf.DynamicCreateForCustom(namespace, apiVersion, obj)
 			case utils.DEPLOY_Service:
-				_, exist, _ := dm.Sv.Exist(namespace, name)
+				_, exist, _ := client.GetBaseClient().Sv.Exist(namespace, name)
 				if exist {
 					return nil, fmt.Errorf("应用已存在, Kind:%s, Name: %s, namespace:%s", kind, name, namespace)
 				}
-				_, errs = dm.Sv.DynamicCreateForCustom(namespace, apiVersion, obj)
+				_, errs = client.GetBaseClient().Sv.DynamicCreateForCustom(namespace, apiVersion, obj)
 			default:
 				return nil, errors.New("资源类型不存在，可选 Deployment | StatefulSet | Service")
 			}
@@ -184,11 +176,11 @@ func (dm *deployService) Delete(ctx context.Context, req *DeleteRequest) (*Delet
 	var err error
 	switch req.Kind {
 	case utils.DEPLOY_DEPLOYMENT:
-		err = dm.Deployment.Delete(req.Namespace, req.Name)
+		err = client.GetBaseClient().Deployment.Delete(req.Namespace, req.Name)
 	case utils.DEPLOY_STATEFULSET:
-		err = dm.StateFulSet.Delete(req.Namespace, req.Name)
+		err = client.GetBaseClient().Sf.Delete(req.Namespace, req.Name)
 	case utils.DEPLOY_Service:
-		err = dm.Sv.Delete(req.Namespace, req.Name)
+		err = client.GetBaseClient().Sv.Delete(req.Namespace, req.Name)
 	default:
 		return nil, errors.New("资源类型不存在，可选 Deployment | StatefulSet | Service")
 	}
@@ -203,7 +195,7 @@ func (dm *deployService) Delete(ctx context.Context, req *DeleteRequest) (*Delet
 // @Success 200 {string} json "{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}"
 // @Router /resource/v1/namespace/create [post]
 func (dm *deployService) CreateNs(ctx context.Context, req *NamespaceRequest) (*NamespaceResponse, error) {
-	_, err := dm.Namespace.Create(req.Namespace)
+	_, err := client.GetBaseClient().Ns.Create(req.Namespace)
 	err = k8s2.PrintErr(err)
 	app.CacheNamespace(app.GetNamespaceDetail(req.Namespace))
 	return nil, err
@@ -216,8 +208,34 @@ func (dm *deployService) CreateNs(ctx context.Context, req *NamespaceRequest) (*
 // @Success 200 {string} json "{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}"
 // @Router /resource/v1/namespace/delete [post]
 func (dm *deployService) DeleteNs(ctx context.Context, req *NamespaceRequest) (*NamespaceResponse, error) {
-	err := dm.Namespace.Delete(req.Namespace, "")
+	err := client.GetBaseClient().Ns.Delete(req.Namespace, "")
 	err = k8s2.PrintErr(err)
 	_ = inital.GetGlobal().GetCache().HDel(utils.NAMESPACE_PREFIX_KEY, utils.NAMESPACE_PREFIX_KEY+req.Namespace)
 	return nil, err
+}
+
+func (dm *deployService) Expansion(ctx context.Context, req *ExpansionRequest) (*ExpansionResponse, error) {
+	var (
+		deploy interface{}
+		err    error
+		flag   bool
+	)
+	switch req.Kind {
+	case utils.DEPLOY_DEPLOYMENT:
+		deploy, flag, err = client.GetBaseClient().Deployment.Exist(req.Namespace, req.Name)
+	case utils.DEPLOY_STATEFULSET:
+		deploy, flag, err = client.GetBaseClient().Sf.Exist(req.Namespace, req.Name)
+	default:
+		return nil, errors.New("未知资源类型")
+	}
+	if err != nil {
+		return nil, err
+	}
+	if !flag {
+		return nil, errors.New("应用不存在")
+	}
+	if req.Replicas > 0 {
+		fmt.Println(deploy)
+	}
+	return nil, nil
 }

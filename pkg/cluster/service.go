@@ -12,6 +12,7 @@ import (
 	"k8s.io/metrics/pkg/apis/metrics/v1beta1"
 	app "relaper.com/kubemanage/cache"
 	"relaper.com/kubemanage/inital"
+	"relaper.com/kubemanage/inital/client"
 	k8s2 "relaper.com/kubemanage/k8s"
 	"relaper.com/kubemanage/model"
 	"relaper.com/kubemanage/pkg/assemble"
@@ -36,24 +37,10 @@ type Service interface {
 
 // NewService return a Service interface
 func NewService() Service {
-	return &clusterService{
-		node:        k8s2.NewNode(),
-		namespace:   k8s2.NewNs(),
-		pod:         k8s2.NewPod(),
-		deployment:  k8s2.NewDeploy(),
-		statefulSet: k8s2.NewStateFulSet(),
-		service:     k8s2.NewSv(),
-	}
+	return &clusterService{}
 }
 
-type clusterService struct {
-	node        *k8s2.Node
-	namespace   *k8s2.Ns
-	pod         *k8s2.Pod
-	deployment  *k8s2.Deployment
-	statefulSet *k8s2.Sf
-	service     *k8s2.Sv
-}
+type clusterService struct{}
 
 // @Summary 获取集群信息
 // @Produce  json
@@ -87,12 +74,12 @@ func (cs *clusterService) Cluster(ctx context.Context, req *ClusterRequest) (*Cl
 // @Success 200 {array} protocol.Response{data=model.NodeDetail} "{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}"
 // @Router /cluster/v1/nodes [post]
 func (cs *clusterService) Nodes(ctx context.Context, req *NodesRequest) (*NodesResponse, error) {
-	nodes, err := cs.node.List("")
+	nodes, err := client.GetBaseClient().Node.List("")
 	if err != nil {
 		err = k8s2.PrintErr(err)
 		return nil, errors2.WithTipMessage(err, "获取节点列表信息失败")
 	}
-	nodeList := nodes.(*v1.NodeList).Items
+	nodeList := nodes.Items
 	var (
 		podsList []v1.Pod
 	)
@@ -100,12 +87,11 @@ func (cs *clusterService) Nodes(ctx context.Context, req *NodesRequest) (*NodesR
 	if err != nil {
 		log.Debugf("Method [Nodes] = > Get NodeMetrics is err:%v", err.Error())
 	}
-	pods, err := cs.pod.List("")
+	pods, err := client.GetBaseClient().Pod.List("")
 	if err != nil {
 		log.Debugf("Method [Nodes] = > Get pods is err:%v", err.Error())
 	} else {
-		podList := pods.(*v1.PodList)
-		podsList = podList.Items
+		podsList = pods.Items
 	}
 	podMetricsList, err := k8s2.GetPodListMetrics("")
 	if err != nil {
@@ -124,7 +110,7 @@ func (cs *clusterService) Nodes(ctx context.Context, req *NodesRequest) (*NodesR
 // @Success 200 {object} protocol.Response{data=NodeResponse} "{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}"
 // @Router /cluster/v1/node [get]
 func (cs *clusterService) Node(ctx context.Context, req *NodeRequest) (*NodeResponse, error) {
-	node, err := cs.node.Get("", req.Name)
+	nodeInfo, err := client.GetBaseClient().Node.Get("", req.Name)
 	if k8serror.IsNotFound(err) {
 		return &NodeResponse{
 			Exist: false,
@@ -134,7 +120,6 @@ func (cs *clusterService) Node(ctx context.Context, req *NodeRequest) (*NodeResp
 	} else if err != nil {
 		return nil, errors.New("内部错误")
 	}
-	nodeInfo := node.(*v1.Node)
 	var (
 		podsList       []v1.Pod
 		metrics        []v1beta1.NodeMetrics
@@ -152,12 +137,11 @@ func (cs *clusterService) Node(ctx context.Context, req *NodeRequest) (*NodeResp
 		wg.Done()
 	}()
 	go func() {
-		pods, err := cs.pod.List("")
+		pods, err := client.GetBaseClient().Pod.List("")
 		if err != nil {
 			log.Debugf("Method [Node] = > Get pods is err:%v", err.Error())
 		} else {
-			podList := pods.(*v1.PodList)
-			podsList = podList.Items
+			podsList = pods.Items
 		}
 		wg.Done()
 	}()
@@ -274,7 +258,7 @@ func (cs *clusterService) NameSpaces(ctx context.Context, req *NameSpacesRequest
 // @Success 200 {object} protocol.Response{data=PodInfoResponse} "{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}"
 // @Router /cluster/v1/pod [post]
 func (cs *clusterService) PodInfo(ctx context.Context, req *PodInfoRequest) (*PodInfoResponse, error) {
-	pod, err := cs.pod.Get(req.NameSpace, req.PodName)
+	podInfo, err := client.GetBaseClient().Pod.Get(req.NameSpace, req.PodName)
 	if k8serror.IsNotFound(err) {
 		return &PodInfoResponse{
 			Exist: false,
@@ -284,7 +268,6 @@ func (cs *clusterService) PodInfo(ctx context.Context, req *PodInfoRequest) (*Po
 	} else if err != nil {
 		return nil, errors.New("内部错误")
 	}
-	podInfo := pod.(*v1.Pod)
 	podListMetric := make([]v1beta1.PodMetrics, 0)
 	podMetric, err := k8s2.GetPodMetrics(req.NameSpace, req.PodName)
 	if err != nil {
@@ -307,7 +290,7 @@ func (cs *clusterService) PodInfo(ctx context.Context, req *PodInfoRequest) (*Po
 // @Success 200 {object} protocol.Response{data=PodLogResponse} "{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}"
 // @Router /cluster/v1/podLog [get]
 func (cs *clusterService) PodLog(ctx context.Context, req *PodInfoRequest) (*PodLogResponse, error) {
-	podLog, err := cs.pod.Log(req.NameSpace, req.PodName)
+	podLog, err := client.GetBaseClient().Pod.Log(req.NameSpace, req.PodName)
 	return &PodLogResponse{
 		Log: podLog,
 	}, err
@@ -320,7 +303,7 @@ func (cs *clusterService) PodLog(ctx context.Context, req *PodInfoRequest) (*Pod
 // @Success 200 {object} protocol.Response{data=PodsResponse} "{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}"
 // @Router /cluster/v1/pods [post]
 func (cs *clusterService) Pods(ctx context.Context, req *PodsRequest) (*PodsResponse, error) {
-	pods, err := cs.pod.List(req.NameSpace)
+	pods, err := client.GetBaseClient().Pod.List(req.NameSpace)
 	if k8serror.IsNotFound(err) {
 		return &PodsResponse{}, nil
 	} else if statusError, isStatus := err.(*k8serror.StatusError); isStatus {
@@ -328,7 +311,7 @@ func (cs *clusterService) Pods(ctx context.Context, req *PodsRequest) (*PodsResp
 	} else if err != nil {
 		return nil, errors.New("内部错误")
 	}
-	items := pods.(*v1.PodList).Items
+	items := pods.Items
 	podListMetric, err := k8s2.GetPodListMetrics(req.NameSpace)
 	if err != nil {
 		log.Debug("获取pod监控资源失败，err:", err.Error())
@@ -352,14 +335,14 @@ func (cs *clusterService) Deployment(ctx context.Context, req *ResourceRequest) 
 		items  []model.DeploymentDetail
 	)
 	if req.Name == "" {
-		deploy, err = cs.deployment.List(req.NameSpace)
+		deploy, err = client.GetBaseClient().Deployment.List(req.NameSpace)
 		err = k8s2.PrintErr(err)
 		if err == nil {
 			deploys := deploy.(*appsv1.DeploymentList).Items
 			items = assemble.AssembleDeployment(req.NameSpace, deploys)
 		}
 	} else {
-		deploy, err = cs.deployment.Get(req.NameSpace, req.Name)
+		deploy, err = client.GetBaseClient().Deployment.Get(req.NameSpace, req.Name)
 		err = k8s2.PrintErr(err)
 		if err == nil {
 			dp := deploy.(*appsv1.Deployment)
@@ -384,14 +367,14 @@ func (cs *clusterService) StatefulSet(ctx context.Context, req *ResourceRequest)
 		items  []model.StatefulSetDetail
 	)
 	if req.Name == "" {
-		deploy, err = cs.statefulSet.List(req.NameSpace)
+		deploy, err = client.GetBaseClient().Sf.List(req.NameSpace)
 		err = k8s2.PrintErr(err)
 		if err == nil {
 			stats := deploy.(*appsv1.StatefulSetList).Items
 			items = assemble.AssembleStatefulSet(req.NameSpace, stats)
 		}
 	} else {
-		deploy, err = cs.statefulSet.Get(req.NameSpace, req.Name)
+		deploy, err = client.GetBaseClient().Sf.Get(req.NameSpace, req.Name)
 		err = k8s2.PrintErr(err)
 		if err == nil {
 			dp := deploy.(*appsv1.StatefulSet)
@@ -416,14 +399,14 @@ func (cs *clusterService) Services(ctx context.Context, req *ResourceRequest) (*
 		items  []model.ServiceDetail
 	)
 	if req.Name == "" {
-		deploy, err = cs.service.List(req.NameSpace)
+		deploy, err = client.GetBaseClient().Sv.List(req.NameSpace)
 		err = k8s2.PrintErr(err)
 		if err == nil {
 			svcs := deploy.(*v1.ServiceList).Items
 			items = assemble.AssembleService(req.NameSpace, svcs)
 		}
 	} else {
-		deploy, err = cs.service.Get(req.NameSpace, req.Name)
+		deploy, err = client.GetBaseClient().Sv.Get(req.NameSpace, req.Name)
 		err = k8s2.PrintErr(err)
 		if err == nil {
 			dp := deploy.(*v1.Service)
@@ -446,33 +429,33 @@ func (cs *clusterService) GetDetailForRange(namespace v1.Namespace) model.Namesp
 	var wg sync.WaitGroup
 	wg.Add(3)
 	go func() {
-		deploys, err := cs.deployment.List(name)
+		deploys, err := client.GetBaseClient().Deployment.List(name)
 		if err != nil {
 			log.Debugf("Method [GetDetailForRange] = > Get deployment is err:%v", err.Error())
-		} else if len(deploys.(*appsv1.DeploymentList).Items) > 0 {
-			namespaceDetail.DeploymentList = assemble.AssembleDeployment(name, deploys.(*appsv1.DeploymentList).Items)
+		} else if len(deploys.Items) > 0 {
+			namespaceDetail.DeploymentList = assemble.AssembleDeployment(name, deploys.Items)
 		}
 		wg.Done()
 	}()
 	//})
 	//wg.Wrap(func() {
 	go func() {
-		stats, err := cs.statefulSet.List(name)
+		stats, err := client.GetBaseClient().Sf.List(name)
 		if err != nil {
 			log.Debugf("Method [GetDetailForRange] = > Get statefulSet is err:%v", err.Error())
-		} else if len(stats.(*appsv1.StatefulSetList).Items) > 0 {
-			namespaceDetail.StatefulSetList = assemble.AssembleStatefulSet(name, stats.(*appsv1.StatefulSetList).Items)
+		} else if len(stats.Items) > 0 {
+			namespaceDetail.StatefulSetList = assemble.AssembleStatefulSet(name, stats.Items)
 		}
 		wg.Done()
 	}()
 	//})
 	//wg.Wrap(func() {
 	go func() {
-		svcs, err := cs.service.List(name)
+		svcs, err := client.GetBaseClient().Sv.List(name)
 		if err != nil {
 			log.Debugf("Method [GetDetailForRange] = > Get service is err:%v", err.Error())
-		} else if len(svcs.(*v1.ServiceList).Items) > 0 {
-			namespaceDetail.ServiceList = assemble.AssembleService(name, svcs.(*v1.ServiceList).Items)
+		} else if len(svcs.Items) > 0 {
+			namespaceDetail.ServiceList = assemble.AssembleService(name, svcs.Items)
 		}
 		wg.Done()
 	}()
@@ -497,11 +480,11 @@ func (cs *clusterService) GetYaml(ctx context.Context, req *GetYamlRequest) (*Ge
 	)
 	switch req.Kind {
 	case utils.DEPLOY_DEPLOYMENT:
-		obj, err = cs.deployment.DynamicGet(req.Namespace, req.Name)
+		obj, err = client.GetBaseClient().Deployment.DynamicGet(req.Namespace, req.Name)
 	case utils.DEPLOY_STATEFULSET:
-		obj, err = cs.statefulSet.DynamicGet(req.Namespace, req.Name)
+		obj, err = client.GetBaseClient().Sf.DynamicGet(req.Namespace, req.Name)
 	case utils.DEPLOY_Service:
-		obj, err = cs.service.DynamicGet(req.Namespace, req.Name)
+		obj, err = client.GetBaseClient().Sv.DynamicGet(req.Namespace, req.Name)
 	}
 
 	err = k8s2.PrintErr(err)

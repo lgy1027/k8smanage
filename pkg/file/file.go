@@ -5,22 +5,10 @@ import (
 	goyaml "gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"net/http"
-	k8s2 "relaper.com/kubemanage/k8s"
+	"relaper.com/kubemanage/inital/client"
 	"relaper.com/kubemanage/protocol"
 	"relaper.com/kubemanage/utils"
 )
-
-var (
-	deployment  *k8s2.Deployment
-	statefulSet *k8s2.Sf
-	service     *k8s2.Sv
-)
-
-func init() {
-	deployment = k8s2.NewDeploy()
-	statefulSet = k8s2.NewStateFulSet()
-	service = k8s2.NewSv()
-}
 
 // @Summary  下载yaml文件
 // @Accept  octet-stream
@@ -48,11 +36,11 @@ func HandleDownload(w http.ResponseWriter, req *http.Request) {
 	)
 	switch kind {
 	case utils.DEPLOY_DEPLOYMENT:
-		obj, err = deployment.DynamicGet(namespace, name)
+		obj, err = client.GetBaseClient().Deployment.DynamicGet(namespace, name)
 	case utils.DEPLOY_STATEFULSET:
-		obj, err = statefulSet.DynamicGet(namespace, name)
+		obj, err = client.GetBaseClient().Sf.DynamicGet(namespace, name)
 	case utils.DEPLOY_Service:
-		obj, err = service.DynamicGet(namespace, name)
+		obj, err = client.GetBaseClient().Sv.DynamicGet(namespace, name)
 	}
 	if err != nil {
 		return

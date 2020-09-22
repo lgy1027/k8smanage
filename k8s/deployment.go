@@ -17,11 +17,11 @@ func NewDeploy() *Deployment {
 	return &Deployment{}
 }
 
-func (deployment *Deployment) List(namespace string) (interface{}, error) {
+func (deployment *Deployment) List(namespace string) (*appsv1.DeploymentList, error) {
 	return inital.GetGlobal().GetClientSet().AppsV1().Deployments(namespace).List(metav1.ListOptions{})
 }
 
-func (deployment *Deployment) Get(namespace, name string) (interface{}, error) {
+func (deployment *Deployment) Get(namespace, name string) (*appsv1.Deployment, error) {
 	return inital.GetGlobal().GetClientSet().AppsV1().Deployments(namespace).Get(name, metav1.GetOptions{})
 }
 

@@ -10,7 +10,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"net/http"
 	"relaper.com/kubemanage/inital"
-	k8s2 "relaper.com/kubemanage/k8s"
+	"relaper.com/kubemanage/inital/client"
 	"relaper.com/kubemanage/utils"
 )
 
@@ -64,12 +64,11 @@ func ServeWsLogs(w http.ResponseWriter, r *http.Request) {
 		writer.Close()
 	}()
 
-	pod, err := k8s2.NewPod().Get(namespace, podName)
+	podDetail, err := client.GetBaseClient().Pod.Get(namespace, podName)
 	if err != nil {
 		log.Printf("获取pod失败: %v\n", err)
 		return
 	}
-	podDetail := pod.(*v1.Pod)
 	ok, err := ValidatePod(podDetail, containerName)
 	if !ok {
 		msg := fmt.Sprintf("Validate pod error! err: %v", err)

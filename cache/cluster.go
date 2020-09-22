@@ -3,9 +3,9 @@ package app
 import (
 	"encoding/json"
 	log "github.com/cihub/seelog"
-	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	"relaper.com/kubemanage/inital"
+	"relaper.com/kubemanage/inital/client"
 	k8s2 "relaper.com/kubemanage/k8s"
 	"relaper.com/kubemanage/model"
 	"relaper.com/kubemanage/pkg/assemble"
@@ -14,24 +14,6 @@ import (
 	"strconv"
 	"sync"
 )
-
-var (
-	node        k8s2.Base
-	namespace   *k8s2.Ns
-	pod         k8s2.Base
-	deployment  *k8s2.Deployment
-	statefulSet *k8s2.Sf
-	service     *k8s2.Sv
-)
-
-func init() {
-	node = k8s2.NewNode()
-	namespace = k8s2.NewNs()
-	pod = k8s2.NewPod()
-	deployment = k8s2.NewDeploy()
-	statefulSet = k8s2.NewStateFulSet()
-	service = k8s2.NewSv()
-}
 
 func Cache() {
 	cluster := GetClusterData()
@@ -73,14 +55,14 @@ func GetClusterData() *model.Cluster {
 	}
 	var wg tools.WaitGroupWrapper
 	wg.Wrap(func() {
-		nodes, err := node.List("")
+		nodes, err := client.GetBaseClient().Node.List("")
 		if err != nil {
 			log.Debug("获取节点列表失败，err:", err.Error())
 			return
 		}
-		nodeList := nodes.(*v1.NodeList).Items
+		nodeList := nodes.Items
 		cluster.NodeNum = len(nodeList)
-		pods, err := pod.List("")
+		pods, err := client.GetBaseClient().Pod.List("")
 		if err != nil {
 			log.Debug("获取Pod列表失败，err:", err.Error())
 		}
@@ -94,7 +76,7 @@ func GetClusterData() *model.Cluster {
 			log.Debug("获取pod指标失败，err:", err.Error())
 		}
 
-		podsList := pods.(*v1.PodList).Items
+		podsList := pods.Items
 		nodeDetailList := assemble.AssembleNodes(nodeList, podsList, nodeMetricsList, podMetrics)
 		for _, node := range nodeDetailList {
 			if node.Status == "Ready" {
@@ -106,13 +88,12 @@ func GetClusterData() *model.Cluster {
 		cluster.Nodes = nodeDetailList
 	})
 	wg.Wrap(func() {
-		namespaces, err := namespace.List("")
+		namespaces, err := client.GetBaseClient().Ns.List("")
 		if err != nil {
 			log.Debug("获取命名空间失败，err:", err.Error())
 			return
 		}
-		items := namespaces.(*v1.NamespaceList).Items
-		cluster.NameSpaceNum = len(items)
+		cluster.NameSpaceNum = len(namespaces.Items)
 	})
 	wg.Wait()
 	var (
@@ -141,12 +122,12 @@ func GetClusterData() *model.Cluster {
 func GetNamespaceDetail(name string) []model.NamespaceDetail {
 	namespaceDetail := make([]model.NamespaceDetail, 0)
 	if name == "" {
-		namespaces, err := namespace.List("")
+		namespaces, err := client.GetBaseClient().Ns.List("")
 		if err != nil {
 			log.Debug("获取命名空间失败，err:", err.Error())
 			return nil
 		}
-		items := namespaces.(*v1.NamespaceList).Items
+		items := namespaces.Items
 		var wg sync.WaitGroup
 		for _, ns := range items {
 			wg.Add(1)
@@ -158,13 +139,12 @@ func GetNamespaceDetail(name string) []model.NamespaceDetail {
 		}
 		wg.Wait()
 	} else {
-		namespace, err := namespace.Get(name, "")
+		namespace, err := client.GetBaseClient().Ns.Get(name, "")
 		if err != nil {
 			log.Debug("获取命名空间失败，err:", err.Error())
 			return nil
 		}
-		ns := namespace.(*v1.Namespace)
-		namespaceDetail = append(namespaceDetail, GetDetailForRange(*ns))
+		namespaceDetail = append(namespaceDetail, GetDetailForRange(*namespace))
 	}
 	return namespaceDetail
 }
@@ -180,31 +160,31 @@ func GetDetailForRange(namespace v1.Namespace) model.NamespaceDetail {
 	var wg sync.WaitGroup
 	wg.Add(3)
 	go func() {
-		deploys, err := deployment.List(name)
+		deploys, err := client.GetBaseClient().Deployment.List(name)
 		if err != nil {
 			log.Debugf("Method [GetDetailForRange] = > Get deployment is err:%v", err.Error())
-		} else if len(deploys.(*appsv1.DeploymentList).Items) > 0 {
-			namespaceDetail.DeploymentList = assemble.AssembleDeployment(name, deploys.(*appsv1.DeploymentList).Items)
+		} else if len(deploys.Items) > 0 {
+			namespaceDetail.DeploymentList = assemble.AssembleDeployment(name, deploys.Items)
 		}
 		wg.Done()
 	}()
 
 	go func() {
-		stats, err := statefulSet.List(name)
+		stats, err := client.GetBaseClient().Sf.List(name)
 		if err != nil {
 			log.Debugf("Method [GetDetailForRange] = > Get statefulSet is err:%v", err.Error())
-		} else if len(stats.(*appsv1.StatefulSetList).Items) > 0 {
-			namespaceDetail.StatefulSetList = assemble.AssembleStatefulSet(name, stats.(*appsv1.StatefulSetList).Items)
+		} else if len(stats.Items) > 0 {
+			namespaceDetail.StatefulSetList = assemble.AssembleStatefulSet(name, stats.Items)
 		}
 		wg.Done()
 	}()
 
 	go func() {
-		svcs, err := service.List(name)
+		svcs, err := client.GetBaseClient().Sv.List(name)
 		if err != nil {
 			log.Debugf("Method [GetDetailForRange] = > Get service is err:%v", err.Error())
-		} else if len(svcs.(*v1.ServiceList).Items) > 0 {
-			namespaceDetail.ServiceList = assemble.AssembleService(name, svcs.(*v1.ServiceList).Items)
+		} else if len(svcs.Items) > 0 {
+			namespaceDetail.ServiceList = assemble.AssembleService(name, svcs.Items)
 		}
 		wg.Done()
 	}()
@@ -213,12 +193,12 @@ func GetDetailForRange(namespace v1.Namespace) model.NamespaceDetail {
 }
 
 func CachePods() {
-	list, err := pod.List("")
+	list, err := client.GetBaseClient().Pod.List("")
 	if err != nil {
 		log.Debugf("Method [CachePods] = > Get pod list err:%v", err.Error())
 		return
 	}
-	podList := list.(*v1.PodList).Items
+	podList := list.Items
 	for _, pod := range podList {
 		podJson, err := json.Marshal(pod)
 		if err == nil {

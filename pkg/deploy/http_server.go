@@ -60,6 +60,13 @@ func MakeRouter(endpoints Endpoints, options ...httptransport.ServerOption) http
 			protocol.EncodeHTTPGenericResponse,
 			opts...,
 		))
+
+		resource.Handle("/expansion", httptransport.NewServer(
+			endpoints.ExpansionEndpoint,
+			protocol.LogRequest(protocol.MakeDecodeHTTPRequest(func() interface{} { return &ExpansionRequest{} })),
+			protocol.EncodeHTTPGenericResponse,
+			opts...,
+		))
 	}
 
 	namespace := v1.PathPrefix("/namespace").Subrouter()

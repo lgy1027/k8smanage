@@ -83,6 +83,30 @@ func MakeDeleteEndpoint(svc Service) endpoint.Endpoint {
 	}
 }
 
+func (s *Endpoints) Expansion(ctx context.Context, request *ExpansionRequest) (*ExpansionResponse, error) {
+	if resp, err := s.ExpansionEndpoint(ctx, request); err != nil {
+		return nil, err
+	} else {
+		return resp.(*ExpansionResponse), nil
+	}
+}
+
+func MakeExpansionEndpoint(svc Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		if v, ok := request.(Validator); ok {
+			if err = v.Validate(); err != nil {
+				return nil, err
+			}
+		}
+
+		if req, ok := request.(*ExpansionRequest); !ok {
+			return nil, tipErrors.WithTipMessage(errors.New("MakeExpansionEndpoint"), "内部错误")
+		} else {
+			return svc.Expansion(ctx, req)
+		}
+	}
+}
+
 func (s *Endpoints) CreateNs(ctx context.Context, request *NamespaceRequest) (*NamespaceResponse, error) {
 	if resp, err := s.DeployEndpoint(ctx, request); err != nil {
 		return nil, err

@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"relaper.com/kubemanage/httpserver"
 	"relaper.com/kubemanage/inital"
+	_ "relaper.com/kubemanage/inital/client"
 	"relaper.com/kubemanage/task"
 	"relaper.com/kubemanage/utils/tools"
 	"syscall"
