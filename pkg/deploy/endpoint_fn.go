@@ -107,6 +107,30 @@ func MakeExpansionEndpoint(svc Service) endpoint.Endpoint {
 	}
 }
 
+func (s *Endpoints) Stretch(ctx context.Context, request *StretchRequest) (*StretchResponse, error) {
+	if resp, err := s.StretchEndpoint(ctx, request); err != nil {
+		return nil, err
+	} else {
+		return resp.(*StretchResponse), nil
+	}
+}
+
+func MakeStretchEndpoint(svc Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		if v, ok := request.(Validator); ok {
+			if err = v.Validate(); err != nil {
+				return nil, err
+			}
+		}
+
+		if req, ok := request.(*StretchRequest); !ok {
+			return nil, tipErrors.WithTipMessage(errors.New("MakeStretchEndpoint"), "内部错误")
+		} else {
+			return svc.Stretch(ctx, req)
+		}
+	}
+}
+
 func (s *Endpoints) CreateNs(ctx context.Context, request *NamespaceRequest) (*NamespaceResponse, error) {
 	if resp, err := s.DeployEndpoint(ctx, request); err != nil {
 		return nil, err
@@ -151,6 +175,30 @@ func MakeDeleteNsEndpoint(svc Service) endpoint.Endpoint {
 			return nil, tipErrors.WithTipMessage(errors.New("MakeDeleteNsEndpoint"), "内部错误")
 		} else {
 			return svc.DeleteNs(ctx, req)
+		}
+	}
+}
+
+func (s *Endpoints) Rollback(ctx context.Context, request *RollbackRequest) (*RollbackResponse, error) {
+	if resp, err := s.RollbackEndpoint(ctx, request); err != nil {
+		return nil, err
+	} else {
+		return resp.(*RollbackResponse), nil
+	}
+}
+
+func MakeRollbackEndpoint(svc Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		if v, ok := request.(Validator); ok {
+			if err = v.Validate(); err != nil {
+				return nil, err
+			}
+		}
+
+		if req, ok := request.(*RollbackRequest); !ok {
+			return nil, tipErrors.WithTipMessage(errors.New("MakeRollbackEndpoint"), "内部错误")
+		} else {
+			return svc.Rollback(ctx, req)
 		}
 	}
 }

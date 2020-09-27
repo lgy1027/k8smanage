@@ -2,8 +2,12 @@ package app
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	log "github.com/cihub/seelog"
 	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/metrics/pkg/apis/metrics/v1beta1"
 	"relaper.com/kubemanage/inital"
 	"relaper.com/kubemanage/inital/client"
 	k8s2 "relaper.com/kubemanage/k8s"
@@ -21,6 +25,30 @@ func Cache() {
 	go CacheCluster(cluster)
 	go CacheNamespace(namespaceDetail)
 	go CachePods()
+	go CacheNode(cluster.Nodes)
+}
+
+func CacheNode(nodes []model.NodeDetail) {
+	for _, node := range nodes {
+		nodeJson, err := json.Marshal(node)
+		if err == nil {
+			err = inital.GetGlobal().GetCache().Set(utils.NODE_PREFIX_KEY+node.Name, nodeJson, utils.NODE_TIME)
+			if err != nil {
+				log.Debugf("缓存集群数据失败，err:%v", err.Error())
+			}
+		} else {
+			log.Debugf("集群信息json转换失败，err:%v", err.Error())
+		}
+	}
+	nodesJson, err := json.Marshal(nodes)
+	if err == nil {
+		err = inital.GetGlobal().GetCache().Set(utils.NODE_PREFIX_KEY, nodesJson, utils.NODE_TIME)
+		if err != nil {
+			log.Debugf("缓存集群数据失败，err:%v", err.Error())
+		}
+	} else {
+		log.Debugf("集群信息json转换失败，err:%v", err.Error())
+	}
 }
 
 func CacheCluster(cluster *model.Cluster) {
@@ -55,29 +83,8 @@ func GetClusterData() *model.Cluster {
 	}
 	var wg tools.WaitGroupWrapper
 	wg.Wrap(func() {
-		nodes, err := client.GetBaseClient().Node.List("")
-		if err != nil {
-			log.Debug("获取节点列表失败，err:", err.Error())
-			return
-		}
-		nodeList := nodes.Items
-		cluster.NodeNum = len(nodeList)
-		pods, err := client.GetBaseClient().Pod.List("")
-		if err != nil {
-			log.Debug("获取Pod列表失败，err:", err.Error())
-		}
-		nodeMetricsList, err := k8s2.GetNodeListMetrics()
-		if err != nil {
-			log.Debug("获取节点指标失败，err:", err.Error())
-		}
-
-		podMetrics, err := k8s2.GetPodListMetrics("")
-		if err != nil {
-			log.Debug("获取pod指标失败，err:", err.Error())
-		}
-
-		podsList := pods.Items
-		nodeDetailList := assemble.AssembleNodes(nodeList, podsList, nodeMetricsList, podMetrics)
+		nodeDetailList, _ := GetNodes("")
+		cluster.NodeNum = len(nodeDetailList)
 		for _, node := range nodeDetailList {
 			if node.Status == "Ready" {
 				cluster.RunNodeNum++
@@ -119,6 +126,75 @@ func GetClusterData() *model.Cluster {
 	return cluster
 }
 
+func GetNodes(name string) ([]model.NodeDetail, error) {
+	var (
+		err      error
+		nodeList []v1.Node
+	)
+	if name != "" {
+		node, err := client.GetBaseClient().Node.Get("", name)
+		if err != nil {
+			log.Debug("获取节点信息失败,NodeName:", name)
+			return nil, errors.New("获取节点信息失败")
+		}
+		nodeList = []v1.Node{*node}
+	} else {
+		nodes, err := client.GetBaseClient().Node.List("")
+		if err != nil {
+			log.Debug("获取节点列表失败，err:", err.Error())
+			return nil, errors.New("获取节点列表失败")
+		}
+		nodeList = nodes.Items
+	}
+
+	var (
+		pods            *v1.PodList
+		nodeMetricsList []v1beta1.NodeMetrics
+		podMetrics      []v1beta1.PodMetrics
+	)
+
+	var wg sync.WaitGroup
+	wg.Add(3)
+	go func() {
+		opts := metav1.ListOptions{}
+		if name != "" {
+			opts = metav1.ListOptions{
+				FieldSelector: fmt.Sprintf("%s=%s", "spec.nodeName", name),
+			}
+		}
+		pods, err = client.GetBaseClient().Pod.List("", opts)
+		if err != nil {
+			log.Debug("获取Pod列表失败，err:", err.Error())
+		}
+		wg.Done()
+	}()
+
+	go func() {
+		nodeMetricsList, err = k8s2.GetNodeListMetrics()
+		if err != nil {
+			log.Debug("获取节点指标失败，err:", err.Error())
+		}
+		wg.Done()
+	}()
+
+	go func() {
+		podMetrics, err = k8s2.GetPodListMetrics("", metav1.ListOptions{})
+		if err != nil {
+			log.Debug("获取pod指标失败，err:", err.Error())
+		}
+		wg.Done()
+	}()
+	wg.Wait()
+	var nodeDetailList []model.NodeDetail
+	if name != "" {
+		nodeDetail := assemble.AssembleNode(nodeList[0], pods.Items, nodeMetricsList, podMetrics)
+		nodeDetailList = append(nodeDetailList, nodeDetail)
+	} else {
+		nodeDetailList = assemble.AssembleNodes(nodeList, pods.Items, nodeMetricsList, podMetrics)
+	}
+	return nodeDetailList, nil
+}
+
 func GetNamespaceDetail(name string) []model.NamespaceDetail {
 	namespaceDetail := make([]model.NamespaceDetail, 0)
 	if name == "" {
@@ -157,43 +233,39 @@ func GetDetailForRange(namespace v1.Namespace) model.NamespaceDetail {
 	}
 	name := namespace.GetName()
 
-	var wg sync.WaitGroup
-	wg.Add(3)
-	go func() {
+	var wg tools.WaitGroupWrapper
+	wg.Wrap(func() {
 		deploys, err := client.GetBaseClient().Deployment.List(name)
 		if err != nil {
 			log.Debugf("Method [GetDetailForRange] = > Get deployment is err:%v", err.Error())
-		} else if len(deploys.Items) > 0 {
+		} else if deploys != nil && len(deploys.Items) > 0 {
 			namespaceDetail.DeploymentList = assemble.AssembleDeployment(name, deploys.Items)
 		}
-		wg.Done()
-	}()
+	})
 
-	go func() {
-		stats, err := client.GetBaseClient().Sf.List(name)
+	wg.Wrap(func() {
+		stats, err := client.GetBaseClient().Sf.List(name, metav1.ListOptions{})
 		if err != nil {
 			log.Debugf("Method [GetDetailForRange] = > Get statefulSet is err:%v", err.Error())
-		} else if len(stats.Items) > 0 {
+		} else if stats != nil && len(stats.Items) > 0 {
 			namespaceDetail.StatefulSetList = assemble.AssembleStatefulSet(name, stats.Items)
 		}
-		wg.Done()
-	}()
+	})
 
-	go func() {
+	wg.Wrap(func() {
 		svcs, err := client.GetBaseClient().Sv.List(name)
 		if err != nil {
 			log.Debugf("Method [GetDetailForRange] = > Get service is err:%v", err.Error())
-		} else if len(svcs.Items) > 0 {
+		} else if svcs != nil && len(svcs.Items) > 0 {
 			namespaceDetail.ServiceList = assemble.AssembleService(name, svcs.Items)
 		}
-		wg.Done()
-	}()
+	})
 	wg.Wait()
 	return namespaceDetail
 }
 
 func CachePods() {
-	list, err := client.GetBaseClient().Pod.List("")
+	list, err := client.GetBaseClient().Pod.List("", metav1.ListOptions{})
 	if err != nil {
 		log.Debugf("Method [CachePods] = > Get pod list err:%v", err.Error())
 		return

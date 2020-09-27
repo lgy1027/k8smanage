@@ -1,6 +1,7 @@
 package k8s
 
 import (
+	"fmt"
 	log "github.com/cihub/seelog"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -21,9 +22,20 @@ func parseEvents(items []v1.Event) []model.EventData {
 	return data
 }
 
-func GetEvents(namespace string, podName string) []model.EventData {
+func GetEvents(namespace string, name string, kind int) []model.EventData {
 	opt := metav1.ListOptions{}
-	opt.FieldSelector = "involvedObject.name=" + podName + ",involvedObject.namespace=" + namespace
+	switch kind {
+	case 0:
+		opt.FieldSelector = fmt.Sprintf("involvedObject.kind=Node,involvedObject.name=%s", name)
+	case 1:
+		opt.FieldSelector = fmt.Sprintf("involvedObject.kind=Deployment,involvedObject.name=%s", name)
+	case 2:
+		opt.FieldSelector = fmt.Sprintf("involvedObject.kind=StatefulSet,involvedObject.name=%s", name)
+	case 3:
+		opt.FieldSelector = fmt.Sprintf("involvedObject.kind=Service,involvedObject.name=%s", name)
+	case 4:
+		opt.FieldSelector = fmt.Sprintf("involvedObject.name=%s,involvedObject.namespace=%s", name, namespace)
+	}
 	events, err := inital.GetGlobal().GetClientSet().CoreV1().Events(namespace).List(opt)
 	if err != nil {
 		log.Error("获取Pods错误", err.Error())

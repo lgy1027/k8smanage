@@ -6,21 +6,24 @@ import (
 	"io"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"relaper.com/kubemanage/inital"
 )
 
-type Pod struct{}
+type Pod struct {
+	clientSet kubernetes.Interface
+}
 
-func NewPod() *Pod {
-	return &Pod{}
+func NewPod(clientSet kubernetes.Interface) *Pod {
+	return &Pod{clientSet}
 }
 
 func (pos *Pod) Get(namespace, name string) (*apiv1.Pod, error) {
 	return inital.GetGlobal().GetClientSet().CoreV1().Pods(namespace).Get(name, metav1.GetOptions{})
 }
 
-func (pos *Pod) List(namespace string) (*apiv1.PodList, error) {
-	return inital.GetGlobal().GetClientSet().CoreV1().Pods(namespace).List(metav1.ListOptions{})
+func (pos *Pod) List(namespace string, opt metav1.ListOptions) (*apiv1.PodList, error) {
+	return inital.GetGlobal().GetClientSet().CoreV1().Pods(namespace).List(opt)
 }
 
 // 删除某个pod后自动重建

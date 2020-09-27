@@ -76,7 +76,7 @@ func Exec(cmd []string, ptyHandler PtyHandler, namespace, podName, containerName
 		TTY:       true,
 	}, scheme.ParameterCodec)
 
-	executor, err := remotecommand.NewSPDYExecutor(inital.GetGlobal().GetK8sConfig(), "POST", req.URL())
+	executor, err := remotecommand.NewSPDYExecutor(inital.GetGlobal().GetK8sConfig(), http.MethodPost, req.URL())
 	if err != nil {
 		return err
 	}

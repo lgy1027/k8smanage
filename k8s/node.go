@@ -3,13 +3,16 @@ package k8s
 import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"relaper.com/kubemanage/inital"
 )
 
-type Node struct{}
+type Node struct {
+	clientSet kubernetes.Interface
+}
 
-func NewNode() *Node {
-	return &Node{}
+func NewNode(clientSet kubernetes.Interface) *Node {
+	return &Node{clientSet}
 }
 
 func (node *Node) Get(namespace, name string) (*v1.Node, error) {

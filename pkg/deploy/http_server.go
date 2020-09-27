@@ -67,6 +67,20 @@ func MakeRouter(endpoints Endpoints, options ...httptransport.ServerOption) http
 			protocol.EncodeHTTPGenericResponse,
 			opts...,
 		))
+
+		resource.Handle("/stretch", httptransport.NewServer(
+			endpoints.StretchEndpoint,
+			protocol.LogRequest(protocol.MakeDecodeHTTPRequest(func() interface{} { return &StretchRequest{} })),
+			protocol.EncodeHTTPGenericResponse,
+			opts...,
+		))
+
+		resource.Handle("/rollback", httptransport.NewServer(
+			endpoints.RollbackEndpoint,
+			protocol.LogRequest(protocol.MakeDecodeHTTPRequest(func() interface{} { return &RollbackRequest{} })),
+			protocol.EncodeHTTPGenericResponse,
+			opts...,
+		))
 	}
 
 	namespace := v1.PathPrefix("/namespace").Subrouter()

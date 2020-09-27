@@ -3,7 +3,11 @@ package main_test
 import (
 	"flag"
 	"fmt"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"log"
 	"os"
@@ -15,7 +19,8 @@ import (
 )
 
 var (
-	clientset *kubernetes.Clientset
+	clientset  *kubernetes.Clientset
+	restClient *rest.RESTClient
 )
 
 func homeDir() string {
@@ -36,12 +41,31 @@ func init() {
 	if err != nil {
 		log.Println(err)
 	}
+	config.APIPath = "api"
+	config.GroupVersion = &corev1.SchemeGroupVersion
+	config.NegotiatedSerializer = scheme.Codecs
+	restClient, err = rest.RESTClientFor(config)
+	if err != nil {
+		panic(err)
+	}
 
 	clientset, err = kubernetes.NewForConfig(config)
 	if err != nil {
 		panic(err.Error())
 	}
 
+}
+
+func Test_RestClient(t *testing.T) {
+	result := &corev1.NamespaceList{}
+	err := clientset.CoreV1().
+		RESTClient().
+		Get().
+		Namespace("lgy").
+		Resource("deployments").
+		VersionedParams(&metav1.ListOptions{Limit: 500}, scheme.ParameterCodec).Do().Into(result)
+	fmt.Println(err)
+	fmt.Println(result)
 }
 
 func Test_Resource(t *testing.T) {

@@ -3,13 +3,16 @@ package k8s
 import (
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 	"relaper.com/kubemanage/inital"
 )
 
-type Ns struct{}
+type Ns struct {
+	clientSet kubernetes.Interface
+}
 
-func NewNs() *Ns {
-	return &Ns{}
+func NewNs(clientSet kubernetes.Interface) *Ns {
+	return &Ns{clientSet}
 }
 
 func (ns *Ns) List(namespace string) (*apiv1.NamespaceList, error) {

@@ -11,14 +11,12 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// NewHTTPHandler return a http.Handler
 func NewHTTPHandler(endpoints Endpoints) http.Handler {
 	ctxModel := protocol.CtxModel_Production
 	if inital.GetGlobal().GetOptions().Dev {
 		ctxModel = protocol.CtxModel_Debug
 	}
 	options := []httptransport.ServerOption{
-		//httptransport.ServerErrorLogger(logger),
 		httptransport.ServerBefore(
 			httptransport.PopulateRequestContext,
 			protocol.MakeJWTTokenToContext(),
@@ -28,7 +26,6 @@ func NewHTTPHandler(endpoints Endpoints) http.Handler {
 	return MakeRouter(endpoints, options...)
 }
 
-// MakeRouter return a http.Handler.
 // 仅保持最基本的错误处理
 func MakeRouter(endpoints Endpoints, options ...httptransport.ServerOption) http.Handler {
 	opts := []httptransport.ServerOption{
@@ -62,9 +59,16 @@ func MakeRouter(endpoints Endpoints, options ...httptransport.ServerOption) http
 			opts...,
 		))
 
+		v1.Handle("/ns", httptransport.NewServer(
+			endpoints.NsEndpoint,
+			protocol.LogRequest(protocol.MakeDecodeHTTPRequest(func() interface{} { return &NsRequest{} })),
+			protocol.EncodeHTTPGenericResponse,
+			opts...,
+		))
+
 		v1.Handle("/namespace", httptransport.NewServer(
 			endpoints.NameSpaceEndpoint,
-			protocol.LogRequest(protocol.MakeDecodeHTTPRequest(func() interface{} { return &NameSpacesRequest{} })),
+			protocol.LogRequest(protocol.MakeDecodeHTTPRequest(func() interface{} { return &NameSpaceRequest{} })),
 			protocol.EncodeHTTPGenericResponse,
 			opts...,
 		))
@@ -117,6 +121,21 @@ func MakeRouter(endpoints Endpoints, options ...httptransport.ServerOption) http
 			protocol.EncodeHTTPGenericResponse,
 			opts...,
 		))
+
+		v1.Handle("/event", httptransport.NewServer(
+			endpoints.EventEndpoint,
+			protocol.LogRequest(protocol.MakeDecodeHTTPRequest(func() interface{} { return &EventRequest{} })),
+			protocol.EncodeHTTPGenericResponse,
+			opts...,
+		))
+
+		v1.Handle("/version", httptransport.NewServer(
+			endpoints.VersionEndpoint,
+			protocol.LogRequest(protocol.MakeDecodeHTTPRequest(func() interface{} { return &VersionRequest{} })),
+			protocol.EncodeHTTPGenericResponse,
+			opts...,
+		))
+
 		v1.HandleFunc("/uploadYaml", file.HandleDownload)
 	}
 	return r

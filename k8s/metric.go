@@ -6,9 +6,9 @@ import (
 	"relaper.com/kubemanage/inital"
 )
 
-func GetPodListMetrics(namespace string) ([]v1beta1.PodMetrics, error) {
+func GetPodListMetrics(namespace string, opts metav1.ListOptions) ([]v1beta1.PodMetrics, error) {
 	podMetricsList := make([]v1beta1.PodMetrics, 0)
-	podMetrics, err := inital.GetGlobal().GetMetricsClient().MetricsV1beta1().PodMetricses(namespace).List(metav1.ListOptions{})
+	podMetrics, err := inital.GetGlobal().GetMetricsClient().MetricsV1beta1().PodMetricses(namespace).List(opts)
 	if err != nil {
 		return nil, err
 	}

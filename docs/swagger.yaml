@@ -13,24 +13,26 @@ definitions:
           $ref: '#/definitions/model.DeploymentDetail'
         type: array
     type: object
+  cluster.EventResponse:
+    properties:
+      event:
+        items:
+          $ref: '#/definitions/model.EventData'
+        type: array
+    type: object
   cluster.GetYamlResponse:
     properties:
       yaml:
         additionalProperties: true
         type: object
     type: object
-  cluster.NameSpacesRequest:
+  cluster.NameSpaceResponse:
     properties:
+      exist:
+        type: boolean
       namespace:
-        description: '@description 命名空间 非必填'
-        type: string
-    type: object
-  cluster.NameSpacesResponse:
-    properties:
-      namespaces:
-        items:
-          $ref: '#/definitions/model.NamespaceDetail'
-        type: array
+        $ref: '#/definitions/model.NamespaceDetail'
+        type: object
     type: object
   cluster.NodeResponse:
     properties:
@@ -40,6 +42,17 @@ definitions:
       node:
         $ref: '#/definitions/model.NodeDetail'
         type: object
+    type: object
+  cluster.NsRequest:
+    type: object
+  cluster.NsResponse:
+    properties:
+      namespaces:
+        items:
+          $ref: '#/definitions/model.NamespaceDetail'
+        type: array
+      num:
+        type: integer
     type: object
   cluster.PodInfoRequest:
     properties:
@@ -70,6 +83,9 @@ definitions:
     properties:
       namespace:
         description: '@description 命名空间'
+        type: string
+      nodeName:
+        description: '@description 节点'
         type: string
     type: object
   cluster.PodsResponse:
@@ -103,6 +119,13 @@ definitions:
         description: '@description 有状态资源列表'
         items:
           $ref: '#/definitions/model.StatefulSetDetail'
+        type: array
+    type: object
+  cluster.VersionResponse:
+    properties:
+      versions:
+        items:
+          $ref: '#/definitions/model.Versions'
         type: array
     type: object
   deploy.DeleteRequest:
@@ -235,11 +258,56 @@ definitions:
         description: '@description 工作目录'
         type: string
     type: object
+  deploy.ExpansionRequest:
+    properties:
+      kind:
+        description: '@description 资源类型 可选 Deployment | StatefulSet'
+        type: string
+      name:
+        description: '@description 资源名称'
+        type: string
+      namespace:
+        description: '@description 命名空间'
+        type: string
+      resources:
+        description: '@description 资源限制'
+        type: string
+    type: object
   deploy.NamespaceRequest:
     properties:
       namespace:
         description: '@description 命名空间'
         type: string
+    type: object
+  deploy.RollbackRequest:
+    properties:
+      kind:
+        description: '@description 资源类型'
+        type: string
+      name:
+        description: '@description 资源名'
+        type: string
+      namespace:
+        description: '@description 命名空间'
+        type: string
+      versionName:
+        description: '@description 版本名'
+        type: string
+    type: object
+  deploy.StretchRequest:
+    properties:
+      kind:
+        description: '@description 资源类型 可选 Deployment | StatefulSet'
+        type: string
+      name:
+        description: '@description 资源名称'
+        type: string
+      namespace:
+        description: '@description 命名空间'
+        type: string
+      replicas:
+        description: '@description 扩容大小'
+        type: integer
     type: object
   deploy.UploadResponse:
     properties:
@@ -282,12 +350,21 @@ definitions:
         default: Deployment
         description: '@description 资源类型'
         type: string
+      matchLabels:
+        additionalProperties:
+          type: string
+        type: object
       name:
         type: string
       namespace:
         type: string
+      pods:
+        items:
+          $ref: '#/definitions/model.PodDetail'
+        type: array
       status:
-        description: Spec      appsv1.DeploymentSpec   `json:"spec,omitempty"`
+        type: string
+      version:
         type: string
     type: object
   model.EventData:
@@ -309,6 +386,9 @@ definitions:
     properties:
       createTime:
         type: string
+      deploymentNum:
+        description: '@description 无状态数量'
+        type: integer
       deployments:
         description: '@description 无状态资源'
         items:
@@ -316,11 +396,20 @@ definitions:
         type: array
       name:
         type: string
+      podNum:
+        description: '@description 容器数量'
+        type: integer
+      serviceNum:
+        description: '@description 服务数量'
+        type: integer
       services:
         description: '@description 服务资源'
         items:
           $ref: '#/definitions/model.ServiceDetail'
         type: array
+      statefulSetNum:
+        description: '@description 有状态数量'
+        type: integer
       statefulSets:
         description: '@description 有状态资源'
         items:
@@ -339,6 +428,9 @@ definitions:
         type: object
       clusterName:
         description: '@description 集群名'
+        type: string
+      conditions:
+        description: '@description 节点状态'
         type: string
       createTime:
         description: '@description 创建时间'
@@ -381,7 +473,7 @@ definitions:
         description: '@description pod数量'
         type: integer
       podRun:
-        description: '@description 部署的pod总量'
+        description: '@description 运行中的pod总量'
         type: integer
       podTotal:
         description: '@description 部署的pod总量'
@@ -493,8 +585,11 @@ definitions:
         type: string
       namespace:
         type: string
+      objectMeta:
+        type: string
+      spec:
+        type: string
       status:
-        description: Spec      v1.ServiceSpec   `json:"spec,omitempty"`
         type: string
     type: object
   model.StatefulSetDetail:
@@ -503,12 +598,28 @@ definitions:
         default: StatefulSet
         description: '@description 资源类型'
         type: string
+      matchLabels:
+        type: string
       name:
         type: string
       namespace:
         type: string
+      pods:
+        items:
+          $ref: '#/definitions/model.PodDetail'
+        type: array
       status:
-        description: Spec      appsv1.StatefulSetSpec   `json:"spec,omitempty"`
+        type: string
+      version:
+        type: integer
+    type: object
+  model.Versions:
+    properties:
+      version:
+        description: '@description 版本号'
+        type: string
+      versionName:
+        description: '@description 版本名'
         type: string
     type: object
   protocol.Response:
@@ -569,6 +680,8 @@ paths:
                   $ref: '#/definitions/cluster.DeploymentsResponse'
               type: object
       summary: 获取deployment
+      tags:
+      - cluster
   /cluster/v1/detail:
     post:
       produces:
@@ -584,6 +697,38 @@ paths:
                   $ref: '#/definitions/cluster.ClusterResponse'
               type: object
       summary: 获取集群信息
+      tags:
+      - cluster
+  /cluster/v1/event:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 命名空间名 名字
+        in: query
+        name: namespace
+        required: true
+        type: string
+      - description: Pod名字
+        in: query
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/cluster.EventResponse'
+              type: object
+      summary: 获取pod事件
+      tags:
+      - cluster
   /cluster/v1/getYaml:
     get:
       consumes:
@@ -617,16 +762,18 @@ paths:
                   $ref: '#/definitions/cluster.GetYamlResponse'
               type: object
       summary: 获取资源详细配置
+      tags:
+      - cluster
   /cluster/v1/namespace:
-    post:
+    get:
       consumes:
       - application/json
       parameters:
       - description: 命名空间名
-        in: body
-        name: params
-        schema:
-          $ref: '#/definitions/cluster.NameSpacesRequest'
+        in: query
+        name: namespace
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -637,9 +784,11 @@ paths:
             - $ref: '#/definitions/protocol.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/cluster.NameSpacesResponse'
+                  $ref: '#/definitions/cluster.NameSpaceResponse'
               type: object
       summary: 获取命名空间信息
+      tags:
+      - cluster
   /cluster/v1/node:
     get:
       consumes:
@@ -663,6 +812,8 @@ paths:
                   $ref: '#/definitions/cluster.NodeResponse'
               type: object
       summary: 获取节点信息
+      tags:
+      - cluster
   /cluster/v1/nodes:
     post:
       produces:
@@ -680,6 +831,33 @@ paths:
                 type: object
             type: array
       summary: 获取所有节点信息
+      tags:
+      - cluster
+  /cluster/v1/ns:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 命名空间名
+        in: body
+        name: params
+        schema:
+          $ref: '#/definitions/cluster.NsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/cluster.NsResponse'
+              type: object
+      summary: 获取命名空间列表
+      tags:
+      - cluster
   /cluster/v1/pod:
     post:
       consumes:
@@ -704,6 +882,8 @@ paths:
                   $ref: '#/definitions/cluster.PodInfoResponse'
               type: object
       summary: 获取pod信息
+      tags:
+      - cluster
   /cluster/v1/podLog:
     get:
       consumes:
@@ -732,6 +912,8 @@ paths:
                   $ref: '#/definitions/cluster.PodLogResponse'
               type: object
       summary: 获取pod日志
+      tags:
+      - cluster
   /cluster/v1/pods:
     post:
       consumes:
@@ -755,6 +937,8 @@ paths:
                   $ref: '#/definitions/cluster.PodsResponse'
               type: object
       summary: 获取pod列表
+      tags:
+      - cluster
   /cluster/v1/service:
     post:
       consumes:
@@ -779,6 +963,8 @@ paths:
                   $ref: '#/definitions/cluster.ServiceResponse'
               type: object
       summary: 获取service
+      tags:
+      - cluster
   /cluster/v1/statefulSet:
     post:
       consumes:
@@ -803,6 +989,8 @@ paths:
                   $ref: '#/definitions/cluster.StatefulSetsResponse'
               type: object
       summary: 获取statefulSet
+      tags:
+      - cluster
   /cluster/v1/uploadYaml:
     get:
       consumes:
@@ -829,6 +1017,43 @@ paths:
           schema:
             type: string
       summary: 下载yaml文件
+      tags:
+      - file
+  /cluster/v1/version:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 命名空间名 名字
+        in: query
+        name: namespace
+        required: true
+        type: string
+      - description: 资源名
+        in: query
+        name: name
+        required: true
+        type: string
+      - description: 资源唯一标签
+        in: query
+        name: label
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}'
+          schema:
+            allOf:
+            - $ref: '#/definitions/protocol.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/cluster.VersionResponse'
+              type: object
+      summary: 版本号列表
+      tags:
+      - cluster
   /resource/v1/namespace/create:
     post:
       consumes:
@@ -848,6 +1073,8 @@ paths:
           schema:
             type: string
       summary: 创建命名空间
+      tags:
+      - resource
   /resource/v1/namespace/delete:
     post:
       consumes:
@@ -867,6 +1094,8 @@ paths:
           schema:
             type: string
       summary: 删除命名空间
+      tags:
+      - resource
   /resource/v1/resource/delete:
     post:
       consumes:
@@ -886,6 +1115,8 @@ paths:
           schema:
             type: string
       summary: 删除资源
+      tags:
+      - resource
   /resource/v1/resource/deploy:
     post:
       consumes:
@@ -905,6 +1136,71 @@ paths:
           schema:
             type: string
       summary: 部署资源
+      tags:
+      - resource
+  /resource/v1/resource/expansion:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 参数
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/deploy.ExpansionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}'
+          schema:
+            type: string
+      summary: 扩容服务，CPU和内存
+      tags:
+      - resource
+  /resource/v1/resource/rollback:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 参数
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/deploy.RollbackRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}'
+          schema:
+            type: string
+      summary: 版本回滚
+      tags:
+      - resource
+  /resource/v1/resource/stretch:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 参数
+        in: body
+        name: params
+        required: true
+        schema:
+          $ref: '#/definitions/deploy.StretchRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}'
+          schema:
+            type: string
+      summary: 容器伸缩
+      tags:
+      - resource
   /resource/v1/resource/uploadDeploy:
     post:
       parameters:
@@ -926,4 +1222,6 @@ paths:
                   $ref: '#/definitions/deploy.UploadResponse'
               type: object
       summary: 文件部署资源
+      tags:
+      - resource
 swagger: "2.0"

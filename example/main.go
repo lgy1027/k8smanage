@@ -68,20 +68,62 @@ func init() {
 }
 
 func main() {
+	dp, err := clientset.AppsV1().ReplicaSets("lgy").List(metav1.ListOptions{
+		LabelSelector: "app=demo",
+	})
+	fmt.Println(err)
+	fmt.Println(dp)
+
+	dsp, err := clientset.AppsV1().Deployments("lgy").List(metav1.ListOptions{})
+	fmt.Println(err)
+	fmt.Println(dsp)
 
 }
 
-func Other() {
-	for _, pod := range getPods() {
-		if pod.GetNamespace() == "testsd" && pod.GetName() == "test-b8q6sr-7d7566cb49-l5wfg" {
-			events := getEvent(pod.GetName(), pod.GetNamespace())
-			fmt.Println("Event=============name:", pod.GetName(), "=====namespace:", pod.GetNamespace(), "============event:", events)
-			log := getPodLogs(pod.GetNamespace(), pod.GetName())
-			fmt.Println(log)
-		}
+func Rollback() {
+	labelSelector := fmt.Sprintf("app=%s", "demo")
+	deploymentName := "demo-deployment"
+	namespace := "lgy"
+	replicaSetList, err := clientset.AppsV1().ReplicaSets(namespace).List(metav1.ListOptions{LabelSelector: labelSelector})
+	if err != nil {
+		return
 	}
 
-	getNode()
+	if len(replicaSetList.Items) <= 1 {
+		fmt.Println("回滚未执行，没有可回滚的版本")
+		return
+	}
+
+	deployment, err := clientset.AppsV1().Deployments(namespace).Get(deploymentName, metav1.GetOptions{})
+	if err != nil {
+		return
+	}
+
+	// 回滚到此版本k8s-demo-5b65566549
+	rs := "demo-deployment-6f7656cc59"
+	for _, v := range replicaSetList.Items {
+		if v.ObjectMeta.Name == rs {
+			deployment.Spec.Template = v.Spec.Template
+			if _, err = clientset.AppsV1().Deployments(namespace).Update(deployment); err != nil {
+				return
+			}
+			fmt.Println("回滚已执行")
+			return
+		}
+	}
+	fmt.Println("回滚未执行，没有找到指定的版本")
+
+}
+func Other() {
+	//for _, pod := range getPods() {
+	//	if pod.GetNamespace() == "testsd" && pod.GetName() == "test-b8q6sr-7d7566cb49-l5wfg" {
+	//		events := getEvent(pod.GetName(), pod.GetNamespace())
+	//		fmt.Println("Event=============name:", pod.GetName(), "=====namespace:", pod.GetNamespace(), "============event:", events)
+	//		log := getPodLogs(pod.GetNamespace(), pod.GetName())
+	//		fmt.Println(log)
+	//	}
+	//}
+
 }
 
 func getPodLogs(namespace, name string) string {
@@ -157,7 +199,9 @@ func prompt() {
 }
 
 func getPods() []apiv1.Pod {
-	pods, err := clientset.CoreV1().Pods("").List(metav1.ListOptions{})
+	pods, err := clientset.CoreV1().Pods("").List(metav1.ListOptions{
+		FieldSelector: fmt.Sprintf("%s=%s", "metadata.namespace", "lgy"),
+	})
 	if err != nil {
 		panic(err)
 	}
@@ -208,24 +252,30 @@ func testNs() {
 
 func getNode() {
 	//获取NODE
-	fmt.Println("####### 获取node ######")
 	nodes, err := clientset.CoreV1().Nodes().List(metav1.ListOptions{})
 	if err != nil {
 		panic(err)
 	}
 
-	var storge int64
-	//var storgeUser int64
 	for _, node := range nodes.Items {
-		mc, err := metrics.MetricsV1beta1().NodeMetricses().Get(node.GetName(), metav1.GetOptions{})
-		if err != nil {
-			break
-		}
-		storgeUser := mc.Usage.StorageEphemeral().String()
-		fmt.Println(storgeUser)
-		storge += node.Status.Capacity.StorageEphemeral().Value()
+		list, _ := clientset.CoreV1().Pods("").List(metav1.ListOptions{
+			FieldSelector: fmt.Sprintf("%s=%s", "spec.nodeName", node.GetName()),
+		})
+		fmt.Printf("nodeName:%v,num:%v\n", node.GetName(), len(list.Items))
 	}
-	fmt.Println(storge)
+
+	//var storge int64
+	////var storgeUser int64
+	//for _, node := range nodes.Items {
+	//	mc, err := metrics.MetricsV1beta1().NodeMetricses().Get(node.GetName(), metav1.GetOptions{})
+	//	if err != nil {
+	//		break
+	//	}
+	//	storgeUser := mc.Usage.StorageEphemeral().String()
+	//	fmt.Println(storgeUser)
+	//	storge += node.Status.Capacity.StorageEphemeral().Value()
+	//}
+	//fmt.Println(storge)
 	//fmt.Println(storgeUser)
 	//node := nodes.Items[1]
 	//fmt.Println(node)

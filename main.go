@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"relaper.com/kubemanage/httpserver"
 	"relaper.com/kubemanage/inital"
-	_ "relaper.com/kubemanage/inital/client"
+	"relaper.com/kubemanage/inital/client"
 	"relaper.com/kubemanage/task"
 	"relaper.com/kubemanage/utils/tools"
 	"syscall"
@@ -49,12 +49,13 @@ func main() {
 		log.Error(err.Error())
 		return
 	}
+	client.Init(inital.GetGlobal().GetClientSet())
 	go task.ClusterTask()
 	var wg tools.WaitGroupWrapper
 	var server *http.Server
 	done := make(chan struct{})
 	wg.Wrap(func() {
-		server = &http.Server{Addr: opts.Address, Handler: httpserver.Mux(opts.Dev, opts.Address)}
+		server = &http.Server{Addr: opts.Address, Handler: httpserver.Mux(opts.Dev)}
 		if err := server.ListenAndServe(); err != nil {
 			log.Error("action", "init http server fatal", "err", err)
 		}

@@ -61,7 +61,7 @@ func ServeWsLogs(w http.ResponseWriter, r *http.Request) {
 	}
 	defer func() {
 		log.Print("关闭会话.\n")
-		writer.Close()
+		_ = writer.Close()
 	}()
 
 	podDetail, err := client.GetBaseClient().Pod.Get(namespace, podName)
@@ -73,8 +73,8 @@ func ServeWsLogs(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		msg := fmt.Sprintf("Validate pod error! err: %v", err)
 		log.Print(msg + "\n")
-		writer.Write([]byte(msg))
-		writer.Close()
+		_, _ = writer.Write([]byte(msg))
+		_ = writer.Close()
 		return
 	}
 	opt := v1.PodLogOptions{

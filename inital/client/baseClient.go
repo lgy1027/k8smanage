@@ -1,17 +1,20 @@
 package client
 
-import k8s2 "relaper.com/kubemanage/k8s"
+import (
+	"k8s.io/client-go/kubernetes"
+	k8s2 "relaper.com/kubemanage/k8s"
+)
 
 var baseClient *BaseClient
 
-func init() {
+func Init(clientSet kubernetes.Interface) {
 	baseClient = &BaseClient{
-		Deployment: k8s2.NewDeploy(),
-		Sv:         k8s2.NewSv(),
-		Sf:         k8s2.NewStateFulSet(),
-		Ns:         k8s2.NewNs(),
-		Pod:        k8s2.NewPod(),
-		Node:       k8s2.NewNode(),
+		Deployment: k8s2.NewDeploy(clientSet),
+		Sv:         k8s2.NewSv(clientSet),
+		Sf:         k8s2.NewStateFulSet(clientSet),
+		Ns:         k8s2.NewNs(clientSet),
+		Pod:        k8s2.NewPod(clientSet),
+		Node:       k8s2.NewNode(clientSet),
 	}
 }
 

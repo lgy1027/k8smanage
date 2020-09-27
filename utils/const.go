@@ -48,4 +48,7 @@ const (
 
 	POD_PREFIX_KEY = "pod_key_"
 	POD_TIME       = 600
+
+	NODE_PREFIX_KEY = "node_key_"
+	NODE_TIME       = 600
 )

@@ -24,3 +24,17 @@ func AssembleDeployment(namespace string, deploys []appsv1.Deployment) []model.D
 	}
 	return deployList
 }
+
+func AssembleDeploymentSimple(deploy appsv1.Deployment) model.DeploymentDetail {
+	version, ok := deploy.Annotations["deployment.kubernetes.io/revision"]
+	if !ok {
+	}
+	return model.DeploymentDetail{
+		Kind:        utils.DEPLOY_DEPLOYMENT,
+		Namespace:   deploy.GetNamespace(),
+		MatchLabels: deploy.Spec.Selector.MatchLabels,
+		Version:     version,
+		Name:        deploy.GetName(),
+		Status:      deploy.Status,
+	}
+}

@@ -6,14 +6,17 @@ import (
 	k8serror "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/client-go/kubernetes"
 	"relaper.com/kubemanage/inital"
 	"relaper.com/kubemanage/utils"
 )
 
-type Sv struct{}
+type Sv struct {
+	clientSet kubernetes.Interface
+}
 
-func NewSv() *Sv {
-	return &Sv{}
+func NewSv(clientSet kubernetes.Interface) *Sv {
+	return &Sv{clientSet}
 }
 
 func (sv *Sv) List(namespace string) (*apiv1.ServiceList, error) {

@@ -2,22 +2,21 @@ package cluster
 
 import (
 	"context"
-	"encoding/json"
+	"fmt"
 	log "github.com/cihub/seelog"
 	"github.com/pkg/errors"
-	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	k8serror "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/metrics/pkg/apis/metrics/v1beta1"
-	app "relaper.com/kubemanage/cache"
 	"relaper.com/kubemanage/inital"
 	"relaper.com/kubemanage/inital/client"
 	k8s2 "relaper.com/kubemanage/k8s"
 	"relaper.com/kubemanage/model"
 	"relaper.com/kubemanage/pkg/assemble"
 	"relaper.com/kubemanage/utils"
-	errors2 "relaper.com/kubemanage/utils/errors"
+	"strconv"
 	"sync"
 )
 
@@ -25,7 +24,8 @@ type Service interface {
 	Cluster(ctx context.Context, req *ClusterRequest) (*ClusterResponse, error)
 	Nodes(ctx context.Context, req *NodesRequest) (*NodesResponse, error)
 	Node(ctx context.Context, req *NodeRequest) (*NodeResponse, error)
-	NameSpaces(ctx context.Context, req *NameSpacesRequest) (*NameSpacesResponse, error)
+	Ns(ctx context.Context, req *NsRequest) (*NsResponse, error)
+	NameSpace(ctx context.Context, req *NameSpaceRequest) (*NameSpaceResponse, error)
 	PodInfo(ctx context.Context, req *PodInfoRequest) (*PodInfoResponse, error)
 	PodLog(ctx context.Context, req *PodInfoRequest) (*PodLogResponse, error)
 	Pods(ctx context.Context, req *PodsRequest) (*PodsResponse, error)
@@ -33,6 +33,8 @@ type Service interface {
 	StatefulSet(ctx context.Context, req *ResourceRequest) (*StatefulSetsResponse, error)
 	Services(ctx context.Context, req *ResourceRequest) (*ServiceResponse, error)
 	GetYaml(ctx context.Context, req *GetYamlRequest) (*GetYamlResponse, error)
+	Event(ctx context.Context, req *EventRequest) (*EventResponse, error)
+	VersionList(ctx context.Context, req *VersionRequest) (*VersionResponse, error)
 }
 
 // NewService return a Service interface
@@ -42,67 +44,120 @@ func NewService() Service {
 
 type clusterService struct{}
 
+// @Tags cluster
 // @Summary 获取集群信息
 // @Produce  json
 // @Success 200 {object} protocol.Response{data=ClusterResponse} "{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}"
 // @Router /cluster/v1/detail [post]
 func (cs *clusterService) Cluster(ctx context.Context, req *ClusterRequest) (*ClusterResponse, error) {
-	clusterDetail := &model.Cluster{}
-	val, exist, err := inital.GetGlobal().GetCache().Get(utils.CLUSTER_PREFIX_KEY)
+
+	nodes, err := client.GetBaseClient().Node.List("")
 	if err != nil {
-		log.Debug("从缓存获取信息失败,err:", err.Error())
-		clusterDetail = app.GetClusterData()
-	} else {
-		if exist {
-			err = json.Unmarshal([]byte(val), clusterDetail)
-			if err != nil {
-				log.Debug("序列化失败,err:", err.Error())
-			}
-			clusterDetail = app.GetClusterData()
-		} else {
-			clusterDetail = app.GetClusterData()
-			app.CacheCluster(clusterDetail)
-		}
+		log.Debug("获取节点列表失败,err:", err.Error())
+		return nil, k8s2.ErrNodeListGet
 	}
+	cluster := model.Cluster{
+		Nodes: make([]model.NodeDetail, 0),
+	}
+	namespaces, err := client.GetBaseClient().Ns.List("")
+	if err != nil {
+		log.Debug("获取命名空间列表失败,err:", err.Error())
+		return nil, k8s2.ErrNamespaceListGet
+	}
+	cluster.NameSpaceNum = len(namespaces.Items)
+	cluster.NodeNum = len(nodes.Items)
+	var (
+		cpu, mem, useCpu, useMem float64
+	)
+	for _, node := range nodes.Items {
+		nodeDetail := model.NodeDetail{
+			Name:   node.GetName(),
+			HostIp: node.Status.Addresses[0].Address,
+		}
+		list, err := client.GetBaseClient().Pod.List("", metav1.ListOptions{
+			FieldSelector: fmt.Sprintf("%s=%s", "spec.nodeName", node.GetName()),
+		})
+		if err != nil {
+			log.Debug("获取容器列表失败,err:", err.Error())
+			return nil, k8s2.ErrPodListGet
+		}
+		cluster.PodNum += node.Status.Allocatable.Pods().Value()
+		nodeDetail.PodNum = node.Status.Allocatable.Pods().Value()
+		cluster.ActivePodNum += int64(len(list.Items))
+		nodeDetail.PodRun = int64(len(list.Items))
+		if fmt.Sprintf("%s", node.Status.Conditions[len(node.Status.Conditions)-1].Type) == "Ready" {
+			cluster.RunNodeNum++
+			metric, err := k8s2.GetNodeMetrics(node.GetName())
+			if err != nil {
+				log.Debugf("获取节点指标失败,节点: %s, err: %v\n", node.GetName(), err.Error())
+				return nil, k8s2.ErrMetricsGet
+			}
+			resource := assemble.AssembleResource(*metric, node)
+			nodeDetail.Resource = resource
+			cpuNum, _ := strconv.ParseFloat(resource.CpuNum, 64)
+			cpuUse, _ := strconv.ParseFloat(resource.CpuUse, 64)
+			memSize, _ := strconv.ParseFloat(resource.MemSize, 64)
+			memUse, _ := strconv.ParseFloat(resource.MemUse, 64)
+			cpu += cpuNum
+			mem += memSize
+			useCpu += cpuUse
+			useMem += memUse
+		}
+		cluster.Nodes = append(cluster.Nodes, nodeDetail)
+	}
+	cluster.Resource.MemSize = strconv.FormatFloat(mem, 'f', -1, 64)
+	cluster.Resource.MemUse = strconv.FormatFloat(useMem, 'f', -1, 64)
+	cluster.Resource.CpuNum = strconv.FormatFloat(cpu, 'f', -1, 64)
+	cluster.Resource.CpuUse = strconv.FormatFloat(useCpu, 'f', -1, 64)
 	return &ClusterResponse{
-		*clusterDetail,
+		cluster,
 	}, nil
 }
 
+// @Tags cluster
 // @Summary 获取所有节点信息
 // @Produce  json
 // @Success 200 {array} protocol.Response{data=model.NodeDetail} "{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}"
 // @Router /cluster/v1/nodes [post]
 func (cs *clusterService) Nodes(ctx context.Context, req *NodesRequest) (*NodesResponse, error) {
+	nodeList := make([]model.NodeDetail, 0)
 	nodes, err := client.GetBaseClient().Node.List("")
 	if err != nil {
-		err = k8s2.PrintErr(err)
-		return nil, errors2.WithTipMessage(err, "获取节点列表信息失败")
+		log.Debug("获取节点列表失败,err:", err.Error())
+		return nil, k8s2.ErrNodeListGet
 	}
-	nodeList := nodes.Items
-	var (
-		podsList []v1.Pod
-	)
-	nodeMetricsList, err := k8s2.GetNodeListMetrics()
-	if err != nil {
-		log.Debugf("Method [Nodes] = > Get NodeMetrics is err:%v", err.Error())
+
+	for _, node := range nodes.Items {
+		nodeDetail := model.NodeDetail{
+			Name:   node.GetName(),
+			HostIp: node.Status.Addresses[0].Address,
+		}
+		list, err := client.GetBaseClient().Pod.List("", metav1.ListOptions{
+			FieldSelector: fmt.Sprintf("%s=%s", "spec.nodeName", node.GetName()),
+		})
+		if err != nil {
+			log.Debug("获取容器列表失败,err:", err.Error())
+			return nil, k8s2.ErrPodListGet
+		}
+		nodeDetail.PodNum = node.Status.Allocatable.Pods().Value()
+		nodeDetail.PodRun = int64(len(list.Items))
+		if fmt.Sprintf("%s", node.Status.Conditions[len(node.Status.Conditions)-1].Type) == "Ready" {
+			metric, err := k8s2.GetNodeMetrics(node.GetName())
+			if err != nil {
+				log.Debugf("获取节点指标失败,节点: %s, err: %v\n", node.GetName(), err.Error())
+				return nil, k8s2.ErrMetricsGet
+			}
+			resource := assemble.AssembleResource(*metric, node)
+			nodeDetail.Resource = resource
+		}
+		nodeList = append(nodeList, nodeDetail)
 	}
-	pods, err := client.GetBaseClient().Pod.List("")
-	if err != nil {
-		log.Debugf("Method [Nodes] = > Get pods is err:%v", err.Error())
-	} else {
-		podsList = pods.Items
-	}
-	podMetricsList, err := k8s2.GetPodListMetrics("")
-	if err != nil {
-		log.Debug("获取pod指标失败，err:", err.Error())
-	}
-	nodeDetail := assemble.AssembleNodes(nodeList, podsList, nodeMetricsList, podMetricsList)
 	return &NodesResponse{
-		NodeList: nodeDetail,
-	}, nil
+		NodeList: nodeList,
+	}, err
 }
 
+// @Tags cluster
 // @Summary 获取节点信息
 // @Produce  json
 // @Accept  json
@@ -110,147 +165,113 @@ func (cs *clusterService) Nodes(ctx context.Context, req *NodesRequest) (*NodesR
 // @Success 200 {object} protocol.Response{data=NodeResponse} "{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}"
 // @Router /cluster/v1/node [get]
 func (cs *clusterService) Node(ctx context.Context, req *NodeRequest) (*NodeResponse, error) {
-	nodeInfo, err := client.GetBaseClient().Node.Get("", req.Name)
+	node, err := client.GetBaseClient().Node.Get("", req.Name)
 	if k8serror.IsNotFound(err) {
+		log.Debug("节点不存在,err:", err.Error())
 		return &NodeResponse{
 			Exist: false,
 		}, nil
-	} else if statusError, isStatus := err.(*k8serror.StatusError); isStatus {
-		return nil, errors.New(statusError.ErrStatus.Message)
 	} else if err != nil {
-		return nil, errors.New("内部错误")
+		log.Debug("节点不存在,err:", err.Error())
+		return nil, k8s2.ErrNodeGet
 	}
 	var (
-		podsList       []v1.Pod
-		metrics        []v1beta1.NodeMetrics
-		podMetricsList []v1beta1.PodMetrics
+		metrics []v1beta1.NodeMetrics
 	)
-	var wg sync.WaitGroup
-	wg.Add(3)
-	go func() {
-		nodeMetric, err := k8s2.GetNodeMetrics(req.Name)
+	if fmt.Sprintf("%s", node.Status.Conditions[len(node.Status.Conditions)-1].Type) == "Ready" {
+		metric, err := k8s2.GetNodeMetrics(node.GetName())
 		if err != nil {
-			log.Debugf("Method [node] = > Get NodeMetrics is err:%v", err.Error())
-		} else {
-			metrics = append(metrics, *nodeMetric)
+			log.Debugf("获取节点指标失败,节点: %s, err: %v\n", node.GetName(), err.Error())
+			return nil, k8s2.ErrMetricsGet
 		}
-		wg.Done()
-	}()
-	go func() {
-		pods, err := client.GetBaseClient().Pod.List("")
-		if err != nil {
-			log.Debugf("Method [Node] = > Get pods is err:%v", err.Error())
-		} else {
-			podsList = pods.Items
-		}
-		wg.Done()
-	}()
-	go func() {
-		podMetricsList, err = k8s2.GetPodListMetrics("")
-		if err != nil {
-			log.Debugf("Method [Node] = > GetPodListMetrics is err:%v", err.Error())
-		}
-		wg.Done()
-	}()
-	wg.Wait()
-	nodeDetail := assemble.AssembleNodes([]v1.Node{*nodeInfo}, podsList, metrics, podMetricsList)
+		metrics = append(metrics, *metric)
+	}
+	nodeDetail := assemble.AssembleNode(*node, nil, metrics, nil)
+
 	return &NodeResponse{
 		Exist: true,
-		Node:  nodeDetail[0],
+		Node:  nodeDetail,
 	}, nil
 }
 
+// @Tags cluster
+// @Summary  获取命名空间列表
+// @Produce  json
+// @Accept  json
+// @Param   params body NsRequest false "命名空间名"
+// @Success 200 {object} protocol.Response{data=NsResponse} "{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}"
+// @Router /cluster/v1/ns [post]
+func (cs *clusterService) Ns(ctx context.Context, req *NsRequest) (*NsResponse, error) {
+	namespaces, err := client.GetBaseClient().Ns.List("")
+	if err != nil {
+		log.Debug("获取命名空间失败,err:", err.Error())
+		return nil, k8s2.ErrNamespaceListGet
+	}
+	namespacesDetail := make([]model.NamespaceDetail, 0)
+	for _, ns := range namespaces.Items {
+		namespacesDetail = append(namespacesDetail, model.NamespaceDetail{
+			Name:       ns.GetName(),
+			CreateTime: ns.GetCreationTimestamp().String(),
+			Status:     ns.Status.String(),
+		})
+	}
+	return &NsResponse{
+		Num:        len(namespacesDetail),
+		Namespaces: namespacesDetail,
+	}, nil
+}
+
+// @Tags cluster
 // @Summary  获取命名空间信息
 // @Produce  json
 // @Accept  json
-// @Param   params body NameSpacesRequest false "命名空间名"
-// @Success 200 {object} protocol.Response{data=NameSpacesResponse} "{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}"
-// @Router /cluster/v1/namespace [post]
-func (cs *clusterService) NameSpaces(ctx context.Context, req *NameSpacesRequest) (*NameSpacesResponse, error) {
-	resp := &NameSpacesResponse{}
-	namespaceDetail := make([]model.NamespaceDetail, 0)
-	var (
-		results []interface{}
-		result  string
-		err     error
-		exist   bool
-	)
-	if req.Namespace == "" {
-		results, exist, err = inital.GetGlobal().GetCache().HVals(utils.NAMESPACE_PREFIX_KEY)
-	} else {
-		result, exist, err = inital.GetGlobal().GetCache().HGet(utils.NAMESPACE_PREFIX_KEY, utils.NAMESPACE_PREFIX_KEY+req.Namespace)
+// @Param   namespace query string true "命名空间名"
+// @Success 200 {object} protocol.Response{data=NameSpaceResponse} "{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}"
+// @Router /cluster/v1/namespace [get]
+func (cs *clusterService) NameSpace(ctx context.Context, req *NameSpaceRequest) (*NameSpaceResponse, error) {
+	namespaceDetail := model.NamespaceDetail{}
+	namespace, err := client.GetBaseClient().Ns.Get(req.NameSpace, "")
+	if k8serror.IsNotFound(err) {
+		log.Debug("命名空间不存在,err:", err.Error())
+		return &NameSpaceResponse{
+			Exist: false,
+		}, nil
+	} else if err != nil {
+		log.Debug("获取命名空间失败,err:", err.Error())
+		return nil, k8s2.ErrNamespaceGet
 	}
+	deploy, err := client.GetBaseClient().Deployment.List(req.NameSpace)
 	if err != nil {
-		log.Debug("从缓存获取信息失败,err:", err.Error())
-		resp.Namespaces = app.GetNamespaceDetail(req.Namespace)
-	} else {
-		if exist {
-			if req.Namespace == "" {
-				for _, v := range results {
-					var ns model.NamespaceDetail
-					err = json.Unmarshal(v.([]byte), &ns)
-					if err != nil {
-						log.Debug("json转换失败,err:", err.Error())
-					} else {
-						namespaceDetail = append(namespaceDetail, ns)
-					}
-				}
-			} else {
-				ns := model.NamespaceDetail{}
-				err = json.Unmarshal([]byte(result), &ns)
-				if err == nil {
-					namespaceDetail = append(namespaceDetail, ns)
-				} else {
-					log.Debug("json转换失败,err:", err.Error())
-					namespaceDetail = app.GetNamespaceDetail(req.Namespace)
-				}
-			}
-		} else {
-			namespaceDetail = app.GetNamespaceDetail(req.Namespace)
-			if len(namespaceDetail) > 0 {
-				app.CacheNamespace(namespaceDetail)
-			}
-		}
+		log.Debug("获取部署列表失败,err:", err.Error())
+		return nil, k8s2.ErrDeploymentGet
 	}
-	//namespaceDetail := make([]model.NamespaceDetail, 0)
-	//if req.Name == "" {
-	//	namespaces, err := cs.namespace.List("")
-	//	if err != nil {
-	//		return nil, errors2.WithTipMessage(err, "获取命名空间列表失败")
-	//	}
-	//	items := namespaces.(*v1.NamespaceList).Items
-	//	wg := sync.WaitGroup{}
-	//	for _, ns := range items {
-	//		wg.Add(1)
-	//		go func(ns v1.Namespace) {
-	//			namespaceDetail = append(namespaceDetail, cs.GetDetailForRange(ns))
-	//			wg.Done()
-	//		}(ns)
-	//		//namespaceDetail = append(namespaceDetail,cs.GetDetailForRange(ns))
-	//	}
-	//	wg.Wait()
-	//	return &NameSpacesResponse{
-	//		Exist:      true,
-	//		Namespaces: namespaceDetail,
-	//	}, nil
-	//}
-	//namespace, err := cs.namespace.Get(req.Name, "")
-	//if k8serror.IsNotFound(err) {
-	//	return &NameSpacesResponse{
-	//		Exist: false,
-	//	}, nil
-	//} else if statusError, isStatus := err.(*k8serror.StatusError); isStatus {
-	//	return nil, errors.New(statusError.ErrStatus.Message)
-	//} else if err != nil {
-	//	return nil, errors.New("内部错误")
-	//}
-	//ns := namespace.(*v1.Namespace)
-	//namespaceDetail = append(namespaceDetail, cs.GetDetailForRange(*ns))
-	return &NameSpacesResponse{
-		Namespaces: namespaceDetail,
-	}, nil
+	statefulSet, err := client.GetBaseClient().Sf.List(req.NameSpace, metav1.ListOptions{})
+	if err != nil {
+		log.Debug("获取状态副本及失败,err:", err.Error())
+		return nil, k8s2.ErrStatefulSetGet
+	}
+	services, err := client.GetBaseClient().Sv.List(req.NameSpace)
+	if err != nil {
+		log.Debug("获取服务列表失败,err:", err.Error())
+		return nil, k8s2.ErrServiceGet
+	}
+
+	pods, err := client.GetBaseClient().Pod.List(req.NameSpace, metav1.ListOptions{})
+	if err != nil {
+		log.Debug("获取服务列表失败,err:", err.Error())
+		return nil, k8s2.ErrPodGet
+	}
+	namespaceDetail.Name = namespace.GetName()
+	namespaceDetail.CreateTime = namespace.GetCreationTimestamp().String()
+	namespaceDetail.Status = namespace.Status.String()
+	namespaceDetail.DeploymentNum = len(deploy.Items)
+	namespaceDetail.StatefulSetNum = len(statefulSet.Items)
+	namespaceDetail.ServiceNum = len(services.Items)
+	namespaceDetail.PodNum = len(pods.Items)
+	return &NameSpaceResponse{Namespaces: namespaceDetail, Exist: true}, nil
 }
 
+// @Tags cluster
 // @Summary  获取pod信息
 // @Produce  json
 // @Accept  json
@@ -268,20 +289,19 @@ func (cs *clusterService) PodInfo(ctx context.Context, req *PodInfoRequest) (*Po
 	} else if err != nil {
 		return nil, errors.New("内部错误")
 	}
-	podListMetric := make([]v1beta1.PodMetrics, 0)
-	podMetric, err := k8s2.GetPodMetrics(req.NameSpace, req.PodName)
+	var podMetric *v1beta1.PodMetrics
+	podMetric, err = k8s2.GetPodMetrics(req.NameSpace, req.PodName)
 	if err != nil {
 		log.Debug("PodInfo: 获取pod指标信息失败。err:", err.Error())
-	} else {
-		podListMetric = append(podListMetric, *podMetric)
 	}
-	podDetail := assemble.AssemblePod(podInfo.Spec.NodeName, []v1.Pod{*podInfo}, podListMetric)
+	podDetail := assemble.AssemblePodSummary(*podInfo, podMetric)
 	return &PodInfoResponse{
-		Pod:   podDetail[0],
+		Pod:   podDetail,
 		Exist: true,
 	}, nil
 }
 
+// @Tags cluster
 // @Summary  获取pod日志
 // @Produce  json
 // @Accept  json
@@ -296,6 +316,7 @@ func (cs *clusterService) PodLog(ctx context.Context, req *PodInfoRequest) (*Pod
 	}, err
 }
 
+// @Tags cluster
 // @Summary  获取pod列表
 // @Produce  json
 // @Accept  json
@@ -303,25 +324,44 @@ func (cs *clusterService) PodLog(ctx context.Context, req *PodInfoRequest) (*Pod
 // @Success 200 {object} protocol.Response{data=PodsResponse} "{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}"
 // @Router /cluster/v1/pods [post]
 func (cs *clusterService) Pods(ctx context.Context, req *PodsRequest) (*PodsResponse, error) {
-	pods, err := client.GetBaseClient().Pod.List(req.NameSpace)
+	var (
+		pods *v1.PodList
+		err  error
+	)
+	podDetail := make([]model.PodDetail, 0)
+	if req.NameSpace != "" {
+		pods, err = client.GetBaseClient().Pod.List(req.NameSpace, metav1.ListOptions{})
+
+	} else if req.NodeName != "" {
+		pods, err = client.GetBaseClient().Pod.List("", metav1.ListOptions{
+			FieldSelector: fmt.Sprintf("%s=%s", "spec.nodeName", req.NodeName),
+		})
+	}
 	if k8serror.IsNotFound(err) {
 		return &PodsResponse{}, nil
-	} else if statusError, isStatus := err.(*k8serror.StatusError); isStatus {
-		return nil, errors.New(statusError.ErrStatus.Message)
 	} else if err != nil {
-		return nil, errors.New("内部错误")
+		return nil, k8s2.ErrPodListGet
 	}
-	items := pods.Items
-	podListMetric, err := k8s2.GetPodListMetrics(req.NameSpace)
-	if err != nil {
-		log.Debug("获取pod监控资源失败，err:", err.Error())
+	var wg sync.WaitGroup
+	for _, pod := range pods.Items {
+		wg.Add(1)
+		go func(pod v1.Pod) {
+			var podMetric *v1beta1.PodMetrics
+			podMetric, err = k8s2.GetPodMetrics(pod.GetNamespace(), pod.GetName())
+			if err != nil {
+				log.Debug("PodInfo: 获取pod指标信息失败。err:", err.Error())
+			}
+			podDetail = append(podDetail, assemble.AssemblePodSummary(pod, podMetric))
+			wg.Done()
+		}(pod)
 	}
-	podDetail := assemble.AssemblePod("", items, podListMetric)
+	wg.Wait()
 	return &PodsResponse{
 		Pods: podDetail,
 	}, nil
 }
 
+// @Tags cluster
 // @Summary  获取deployment
 // @Produce  json
 // @Accept  json
@@ -330,23 +370,60 @@ func (cs *clusterService) Pods(ctx context.Context, req *PodsRequest) (*PodsResp
 // @Router /cluster/v1/deployment [post]
 func (cs *clusterService) Deployment(ctx context.Context, req *ResourceRequest) (*DeploymentsResponse, error) {
 	var (
-		err    error
-		deploy interface{}
-		items  []model.DeploymentDetail
+		err   error
+		items []model.DeploymentDetail
 	)
 	if req.Name == "" {
-		deploy, err = client.GetBaseClient().Deployment.List(req.NameSpace)
+		deploy, err := client.GetBaseClient().Deployment.List(req.NameSpace)
 		err = k8s2.PrintErr(err)
 		if err == nil {
-			deploys := deploy.(*appsv1.DeploymentList).Items
-			items = assemble.AssembleDeployment(req.NameSpace, deploys)
+			if len(deploy.Items) > 0 {
+				var selectorKey, selectorVal string
+				for _, deploy := range deploy.Items {
+					for key, val := range deploy.Spec.Selector.MatchLabels {
+						selectorKey = key
+						selectorVal = val
+					}
+					pods, err := client.GetBaseClient().Pod.List(req.NameSpace, metav1.ListOptions{
+						LabelSelector: fmt.Sprintf("%s=%s", selectorKey, selectorVal)})
+					if err != nil {
+						return nil, k8s2.ErrProjectPodsList
+					}
+					item := assemble.AssembleDeploymentSimple(deploy)
+					var metrics []v1beta1.PodMetrics
+					metrics, err = k8s2.GetPodListMetrics(req.NameSpace, metav1.ListOptions{})
+					if err != nil {
+						log.Debugf("获取指标失败")
+					}
+					podDetail := assemble.AssemblePod("", pods.Items, metrics)
+					item.PodDetail = podDetail
+					items = append(items, item)
+				}
+			}
 		}
 	} else {
-		deploy, err = client.GetBaseClient().Deployment.Get(req.NameSpace, req.Name)
+		deploy, err := client.GetBaseClient().Deployment.Get(req.NameSpace, req.Name)
 		err = k8s2.PrintErr(err)
 		if err == nil {
-			dp := deploy.(*appsv1.Deployment)
-			items = assemble.AssembleDeployment(req.NameSpace, []appsv1.Deployment{*dp})
+			var selectorKey, selectorVal string
+			for key, val := range deploy.Spec.Selector.MatchLabels {
+				selectorKey = key
+				selectorVal = val
+			}
+			pods, err := client.GetBaseClient().Pod.List(req.NameSpace, metav1.ListOptions{
+				LabelSelector: fmt.Sprintf("%s=%s", selectorKey, selectorVal)})
+			if err != nil {
+				return nil, k8s2.ErrProjectPodsList
+			}
+			item := assemble.AssembleDeploymentSimple(*deploy)
+			var metrics []v1beta1.PodMetrics
+			metrics, err = k8s2.GetPodListMetrics(req.NameSpace, metav1.ListOptions{})
+			if err != nil {
+				log.Debugf("获取指标失败")
+			}
+			podDetail := assemble.AssemblePod("", pods.Items, metrics)
+			item.PodDetail = podDetail
+			items = append(items, item)
 		}
 	}
 	return &DeploymentsResponse{
@@ -354,6 +431,7 @@ func (cs *clusterService) Deployment(ctx context.Context, req *ResourceRequest) 
 	}, err
 }
 
+// @Tags cluster
 // @Summary  获取statefulSet
 // @Produce  json
 // @Accept  json
@@ -362,23 +440,61 @@ func (cs *clusterService) Deployment(ctx context.Context, req *ResourceRequest) 
 // @Router /cluster/v1/statefulSet [post]
 func (cs *clusterService) StatefulSet(ctx context.Context, req *ResourceRequest) (*StatefulSetsResponse, error) {
 	var (
-		err    error
-		deploy interface{}
-		items  []model.StatefulSetDetail
+		err   error
+		items []model.StatefulSetDetail
 	)
 	if req.Name == "" {
-		deploy, err = client.GetBaseClient().Sf.List(req.NameSpace)
+		deploy, err := client.GetBaseClient().Sf.List(req.NameSpace, metav1.ListOptions{})
 		err = k8s2.PrintErr(err)
 		if err == nil {
-			stats := deploy.(*appsv1.StatefulSetList).Items
-			items = assemble.AssembleStatefulSet(req.NameSpace, stats)
+			if len(deploy.Items) > 0 {
+				var selectorKey, selectorVal string
+				for _, deploy := range deploy.Items {
+					for key, val := range deploy.Spec.Selector.MatchLabels {
+						selectorKey = key
+						selectorVal = val
+					}
+					pods, err := client.GetBaseClient().Pod.List(req.NameSpace, metav1.ListOptions{
+						LabelSelector: fmt.Sprintf("%s=%s", selectorKey, selectorVal)})
+					if err != nil {
+						return nil, k8s2.ErrProjectPodsList
+					}
+					item := assemble.AssembleStatefulSetSimple(deploy)
+					var metrics []v1beta1.PodMetrics
+					metrics, err = k8s2.GetPodListMetrics(req.NameSpace, metav1.ListOptions{})
+					if err != nil {
+						log.Debugf("获取指标失败")
+					}
+					podDetail := assemble.AssemblePod("", pods.Items, metrics)
+					item.PodDetail = podDetail
+					items = append(items, item)
+				}
+			}
+
 		}
 	} else {
-		deploy, err = client.GetBaseClient().Sf.Get(req.NameSpace, req.Name)
+		deploy, err := client.GetBaseClient().Sf.Get(req.NameSpace, req.Name)
 		err = k8s2.PrintErr(err)
 		if err == nil {
-			dp := deploy.(*appsv1.StatefulSet)
-			items = assemble.AssembleStatefulSet(req.NameSpace, []appsv1.StatefulSet{*dp})
+			var selectorKey, selectorVal string
+			for key, val := range deploy.Spec.Selector.MatchLabels {
+				selectorKey = key
+				selectorVal = val
+			}
+			pods, err := client.GetBaseClient().Pod.List(req.NameSpace, metav1.ListOptions{
+				LabelSelector: fmt.Sprintf("%s=%s", selectorKey, selectorVal)})
+			if err != nil {
+				return nil, k8s2.ErrProjectPodsList
+			}
+			item := assemble.AssembleStatefulSetSimple(*deploy)
+			var metrics []v1beta1.PodMetrics
+			metrics, err = k8s2.GetPodListMetrics(req.NameSpace, metav1.ListOptions{})
+			if err != nil {
+				log.Debugf("获取指标失败")
+			}
+			podDetail := assemble.AssemblePod("", pods.Items, metrics)
+			item.PodDetail = podDetail
+			items = append(items, item)
 		}
 	}
 	return &StatefulSetsResponse{
@@ -386,6 +502,7 @@ func (cs *clusterService) StatefulSet(ctx context.Context, req *ResourceRequest)
 	}, err
 }
 
+// @Tags cluster
 // @Summary  获取service
 // @Produce  json
 // @Accept  json
@@ -440,7 +557,7 @@ func (cs *clusterService) GetDetailForRange(namespace v1.Namespace) model.Namesp
 	//})
 	//wg.Wrap(func() {
 	go func() {
-		stats, err := client.GetBaseClient().Sf.List(name)
+		stats, err := client.GetBaseClient().Sf.List(name, metav1.ListOptions{})
 		if err != nil {
 			log.Debugf("Method [GetDetailForRange] = > Get statefulSet is err:%v", err.Error())
 		} else if len(stats.Items) > 0 {
@@ -453,7 +570,7 @@ func (cs *clusterService) GetDetailForRange(namespace v1.Namespace) model.Namesp
 	go func() {
 		svcs, err := client.GetBaseClient().Sv.List(name)
 		if err != nil {
-			log.Debugf("Method [GetDetailForRange] = > Get service is err:%v", err.Error())
+			log.Debugf("Method [GetDetailForRange] = > Get service is err:%v\n", err.Error())
 		} else if len(svcs.Items) > 0 {
 			namespaceDetail.ServiceList = assemble.AssembleService(name, svcs.Items)
 		}
@@ -464,6 +581,7 @@ func (cs *clusterService) GetDetailForRange(namespace v1.Namespace) model.Namesp
 	return namespaceDetail
 }
 
+// @Tags cluster
 // @Summary  获取资源详细配置
 // @Produce  json
 // @Accept  json
@@ -503,4 +621,55 @@ func (cs *clusterService) GetYaml(ctx context.Context, req *GetYamlRequest) (*Ge
 	delete(cont, "terminationMessagePath")
 	delete(cont, "terminationMessagePolicy")
 	return &GetYamlResponse{Yaml: obj.Object}, nil
+}
+
+// @Tags cluster
+// @Summary  获取pod事件
+// @Produce  json
+// @Accept  json
+// @Param   namespace query string true "命名空间名 名字"
+// @Param   name query string true "Pod名字"
+// @Success 200 {object} protocol.Response{data=EventResponse} "{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}"
+// @Router /cluster/v1/event [get]
+func (cs *clusterService) Event(ctx context.Context, req *EventRequest) (*EventResponse, error) {
+	event := k8s2.GetEvents(req.Namespace, req.Name, req.Kind)
+	return &EventResponse{
+		Event: event,
+	}, nil
+}
+
+// @Tags cluster
+// @Summary  版本号列表
+// @Produce  json
+// @Accept  json
+// @Param   namespace query string true "命名空间名 名字"
+// @Param   name query string true "资源名"
+// @Param   label query string true "资源唯一标签"
+// @Success 200 {object} protocol.Response{data=VersionResponse} "{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}"
+// @Router /cluster/v1/version [get]
+func (cs *clusterService) VersionList(ctx context.Context, req *VersionRequest) (*VersionResponse, error) {
+	rs, err := inital.GetGlobal().GetClientSet().AppsV1().ReplicaSets(req.Namespace).List(metav1.ListOptions{
+		LabelSelector: req.Label,
+	})
+	if err != nil {
+		log.Debugf("副本级获取失败 err:%v\n", err.Error())
+		return nil, k8s2.ErrReplicaSetGet
+	}
+	var versionList []model.Versions
+	if rs != nil && len(rs.Items) > 0 {
+		for _, version := range rs.Items {
+			for _, owner := range version.OwnerReferences {
+				if owner.Name == req.Name {
+					versionList = append(versionList, model.Versions{
+						Version:     version.Annotations["deployment.kubernetes.io/revision"],
+						VersionName: version.GetName(),
+					})
+					break
+				}
+			}
+		}
+	}
+	return &VersionResponse{
+		VersionList: versionList,
+	}, nil
 }

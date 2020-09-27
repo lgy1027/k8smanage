@@ -40,6 +40,9 @@ var doc = `{
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "cluster"
+                ],
                 "summary": "获取deployment",
                 "parameters": [
                     {
@@ -79,6 +82,9 @@ var doc = `{
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "cluster"
+                ],
                 "summary": "获取集群信息",
                 "responses": {
                     "200": {
@@ -102,6 +108,56 @@ var doc = `{
                 }
             }
         },
+        "/cluster/v1/event": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cluster"
+                ],
+                "summary": "获取pod事件",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "命名空间名 名字",
+                        "name": "namespace",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Pod名字",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"errno\":0,\"errmsg\":\"\",\"data\":{},\"extr\":{\"inner_error\":\"\",\"error_stack\":\"\"}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/cluster.EventResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/cluster/v1/getYaml": {
             "get": {
                 "consumes": [
@@ -109,6 +165,9 @@ var doc = `{
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "cluster"
                 ],
                 "summary": "获取资源详细配置",
                 "parameters": [
@@ -157,22 +216,24 @@ var doc = `{
             }
         },
         "/cluster/v1/namespace": {
-            "post": {
+            "get": {
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "cluster"
+                ],
                 "summary": "获取命名空间信息",
                 "parameters": [
                     {
+                        "type": "string",
                         "description": "命名空间名",
-                        "name": "params",
-                        "in": "body",
-                        "schema": {
-                            "$ref": "#/definitions/cluster.NameSpacesRequest"
-                        }
+                        "name": "namespace",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -187,7 +248,7 @@ var doc = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/cluster.NameSpacesResponse"
+                                            "$ref": "#/definitions/cluster.NameSpaceResponse"
                                         }
                                     }
                                 }
@@ -204,6 +265,9 @@ var doc = `{
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "cluster"
                 ],
                 "summary": "获取节点信息",
                 "parameters": [
@@ -242,6 +306,9 @@ var doc = `{
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "cluster"
+                ],
                 "summary": "获取所有节点信息",
                 "responses": {
                     "200": {
@@ -268,6 +335,50 @@ var doc = `{
                 }
             }
         },
+        "/cluster/v1/ns": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cluster"
+                ],
+                "summary": "获取命名空间列表",
+                "parameters": [
+                    {
+                        "description": "命名空间名",
+                        "name": "params",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/cluster.NsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"errno\":0,\"errmsg\":\"\",\"data\":{},\"extr\":{\"inner_error\":\"\",\"error_stack\":\"\"}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/cluster.NsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/cluster/v1/pod": {
             "post": {
                 "consumes": [
@@ -275,6 +386,9 @@ var doc = `{
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "cluster"
                 ],
                 "summary": "获取pod信息",
                 "parameters": [
@@ -317,6 +431,9 @@ var doc = `{
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "cluster"
                 ],
                 "summary": "获取pod日志",
                 "parameters": [
@@ -365,6 +482,9 @@ var doc = `{
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "cluster"
+                ],
                 "summary": "获取pod列表",
                 "parameters": [
                     {
@@ -405,6 +525,9 @@ var doc = `{
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "cluster"
                 ],
                 "summary": "获取service",
                 "parameters": [
@@ -448,6 +571,9 @@ var doc = `{
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "cluster"
+                ],
                 "summary": "获取statefulSet",
                 "parameters": [
                     {
@@ -487,6 +613,9 @@ var doc = `{
                 "consumes": [
                     "application/octet-stream"
                 ],
+                "tags": [
+                    "file"
+                ],
                 "summary": "下载yaml文件",
                 "parameters": [
                     {
@@ -521,6 +650,63 @@ var doc = `{
                 }
             }
         },
+        "/cluster/v1/version": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cluster"
+                ],
+                "summary": "版本号列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "命名空间名 名字",
+                        "name": "namespace",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "资源名",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "资源唯一标签",
+                        "name": "label",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"errno\":0,\"errmsg\":\"\",\"data\":{},\"extr\":{\"inner_error\":\"\",\"error_stack\":\"\"}}",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/protocol.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/cluster.VersionResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/resource/v1/namespace/create": {
             "post": {
                 "consumes": [
@@ -528,6 +714,9 @@ var doc = `{
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "resource"
                 ],
                 "summary": "创建命名空间",
                 "parameters": [
@@ -559,6 +748,9 @@ var doc = `{
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "resource"
+                ],
                 "summary": "删除命名空间",
                 "parameters": [
                     {
@@ -588,6 +780,9 @@ var doc = `{
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "resource"
                 ],
                 "summary": "删除资源",
                 "parameters": [
@@ -619,6 +814,9 @@ var doc = `{
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "resource"
+                ],
                 "summary": "部署资源",
                 "parameters": [
                     {
@@ -641,10 +839,112 @@ var doc = `{
                 }
             }
         },
+        "/resource/v1/resource/expansion": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "resource"
+                ],
+                "summary": "扩容服务，CPU和内存",
+                "parameters": [
+                    {
+                        "description": "参数",
+                        "name": "params",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/deploy.ExpansionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"errno\":0,\"errmsg\":\"\",\"data\":{},\"extr\":{\"inner_error\":\"\",\"error_stack\":\"\"}}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/resource/v1/resource/rollback": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "resource"
+                ],
+                "summary": "版本回滚",
+                "parameters": [
+                    {
+                        "description": "参数",
+                        "name": "params",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/deploy.RollbackRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"errno\":0,\"errmsg\":\"\",\"data\":{},\"extr\":{\"inner_error\":\"\",\"error_stack\":\"\"}}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/resource/v1/resource/stretch": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "resource"
+                ],
+                "summary": "容器伸缩",
+                "parameters": [
+                    {
+                        "description": "参数",
+                        "name": "params",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/deploy.StretchRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"errno\":0,\"errmsg\":\"\",\"data\":{},\"extr\":{\"inner_error\":\"\",\"error_stack\":\"\"}}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/resource/v1/resource/uploadDeploy": {
             "post": {
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "resource"
                 ],
                 "summary": "文件部署资源",
                 "parameters": [
@@ -701,6 +1001,17 @@ var doc = `{
                 }
             }
         },
+        "cluster.EventResponse": {
+            "type": "object",
+            "properties": {
+                "event": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.EventData"
+                    }
+                }
+            }
+        },
         "cluster.GetYamlResponse": {
             "type": "object",
             "properties": {
@@ -710,23 +1021,15 @@ var doc = `{
                 }
             }
         },
-        "cluster.NameSpacesRequest": {
+        "cluster.NameSpaceResponse": {
             "type": "object",
             "properties": {
+                "exist": {
+                    "type": "boolean"
+                },
                 "namespace": {
-                    "description": "@description 命名空间 非必填",
-                    "type": "string"
-                }
-            }
-        },
-        "cluster.NameSpacesResponse": {
-            "type": "object",
-            "properties": {
-                "namespaces": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.NamespaceDetail"
-                    }
+                    "type": "object",
+                    "$ref": "#/definitions/model.NamespaceDetail"
                 }
             }
         },
@@ -740,6 +1043,23 @@ var doc = `{
                 "node": {
                     "type": "object",
                     "$ref": "#/definitions/model.NodeDetail"
+                }
+            }
+        },
+        "cluster.NsRequest": {
+            "type": "object"
+        },
+        "cluster.NsResponse": {
+            "type": "object",
+            "properties": {
+                "namespaces": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.NamespaceDetail"
+                    }
+                },
+                "num": {
+                    "type": "integer"
                 }
             }
         },
@@ -784,6 +1104,10 @@ var doc = `{
             "properties": {
                 "namespace": {
                     "description": "@description 命名空间",
+                    "type": "string"
+                },
+                "nodeName": {
+                    "description": "@description 节点",
                     "type": "string"
                 }
             }
@@ -833,6 +1157,17 @@ var doc = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/model.StatefulSetDetail"
+                    }
+                }
+            }
+        },
+        "cluster.VersionResponse": {
+            "type": "object",
+            "properties": {
+                "versions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Versions"
                     }
                 }
             }
@@ -998,12 +1333,75 @@ var doc = `{
                 }
             }
         },
+        "deploy.ExpansionRequest": {
+            "type": "object",
+            "properties": {
+                "kind": {
+                    "description": "@description 资源类型 可选 Deployment | StatefulSet",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "@description 资源名称",
+                    "type": "string"
+                },
+                "namespace": {
+                    "description": "@description 命名空间",
+                    "type": "string"
+                },
+                "resources": {
+                    "description": "@description 资源限制",
+                    "type": "string"
+                }
+            }
+        },
         "deploy.NamespaceRequest": {
             "type": "object",
             "properties": {
                 "namespace": {
                     "description": "@description 命名空间",
                     "type": "string"
+                }
+            }
+        },
+        "deploy.RollbackRequest": {
+            "type": "object",
+            "properties": {
+                "kind": {
+                    "description": "@description 资源类型",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "@description 资源名",
+                    "type": "string"
+                },
+                "namespace": {
+                    "description": "@description 命名空间",
+                    "type": "string"
+                },
+                "versionName": {
+                    "description": "@description 版本名",
+                    "type": "string"
+                }
+            }
+        },
+        "deploy.StretchRequest": {
+            "type": "object",
+            "properties": {
+                "kind": {
+                    "description": "@description 资源类型 可选 Deployment | StatefulSet",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "@description 资源名称",
+                    "type": "string"
+                },
+                "namespace": {
+                    "description": "@description 命名空间",
+                    "type": "string"
+                },
+                "replicas": {
+                    "description": "@description 扩容大小",
+                    "type": "integer"
                 }
             }
         },
@@ -1061,14 +1459,28 @@ var doc = `{
                     "type": "string",
                     "default": "Deployment"
                 },
+                "matchLabels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
                 "name": {
                     "type": "string"
                 },
                 "namespace": {
                     "type": "string"
                 },
+                "pods": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.PodDetail"
+                    }
+                },
                 "status": {
-                    "description": "Spec      appsv1.DeploymentSpec   ` + "`" + `json:\"spec,omitempty\"` + "`" + `",
+                    "type": "string"
+                },
+                "version": {
                     "type": "string"
                 }
             }
@@ -1100,6 +1512,10 @@ var doc = `{
                 "createTime": {
                     "type": "string"
                 },
+                "deploymentNum": {
+                    "description": "@description 无状态数量",
+                    "type": "integer"
+                },
                 "deployments": {
                     "description": "@description 无状态资源",
                     "type": "array",
@@ -1110,12 +1526,24 @@ var doc = `{
                 "name": {
                     "type": "string"
                 },
+                "podNum": {
+                    "description": "@description 容器数量",
+                    "type": "integer"
+                },
+                "serviceNum": {
+                    "description": "@description 服务数量",
+                    "type": "integer"
+                },
                 "services": {
                     "description": "@description 服务资源",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/model.ServiceDetail"
                     }
+                },
+                "statefulSetNum": {
+                    "description": "@description 有状态数量",
+                    "type": "integer"
                 },
                 "statefulSets": {
                     "description": "@description 有状态资源",
@@ -1142,6 +1570,10 @@ var doc = `{
                 },
                 "clusterName": {
                     "description": "@description 集群名",
+                    "type": "string"
+                },
+                "conditions": {
+                    "description": "@description 节点状态",
                     "type": "string"
                 },
                 "createTime": {
@@ -1199,7 +1631,7 @@ var doc = `{
                     "type": "integer"
                 },
                 "podRun": {
-                    "description": "@description 部署的pod总量",
+                    "description": "@description 运行中的pod总量",
                     "type": "integer"
                 },
                 "podTotal": {
@@ -1355,8 +1787,13 @@ var doc = `{
                 "namespace": {
                     "type": "string"
                 },
+                "objectMeta": {
+                    "type": "string"
+                },
+                "spec": {
+                    "type": "string"
+                },
                 "status": {
-                    "description": "Spec      v1.ServiceSpec   ` + "`" + `json:\"spec,omitempty\"` + "`" + `",
                     "type": "string"
                 }
             }
@@ -1369,14 +1806,38 @@ var doc = `{
                     "type": "string",
                     "default": "StatefulSet"
                 },
+                "matchLabels": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
                 "namespace": {
                     "type": "string"
                 },
+                "pods": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.PodDetail"
+                    }
+                },
                 "status": {
-                    "description": "Spec      appsv1.StatefulSetSpec   ` + "`" + `json:\"spec,omitempty\"` + "`" + `",
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.Versions": {
+            "type": "object",
+            "properties": {
+                "version": {
+                    "description": "@description 版本号",
+                    "type": "string"
+                },
+                "versionName": {
+                    "description": "@description 版本名",
                     "type": "string"
                 }
             }

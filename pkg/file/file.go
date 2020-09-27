@@ -10,6 +10,7 @@ import (
 	"relaper.com/kubemanage/utils"
 )
 
+// @Tags file
 // @Summary  下载yaml文件
 // @Accept  octet-stream
 // @Param   namespace query string true "命名空间名 名字"
@@ -67,7 +68,7 @@ func HandleDownload(w http.ResponseWriter, req *http.Request) {
 		fileName = filename.(string)
 	}
 	//将文件写至responseBody
-	w.Header().Set("Access-Control-Allow-Origin", "*") //允许访问所有域
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Add("Content-type", "application/octet-stream")
 	w.Header().Add("content-disposition", "attachment; filename="+fileName+".yaml")
 	_, _ = w.Write(data)

@@ -15,11 +15,12 @@ func AssembleService(namespace string, svcs []v1.Service) []model.ServiceDetail 
 			}
 		}
 		svcList = append(svcList, model.ServiceDetail{
-			Kind:      utils.DEPLOY_Service,
-			Namespace: svc.GetNamespace(),
-			Name:      svc.GetName(),
-			//Spec:      svc.Spec,
-			Status: svc.Status,
+			Kind:       utils.DEPLOY_Service,
+			Namespace:  svc.GetNamespace(),
+			Name:       svc.GetName(),
+			Spec:       svc.Spec,
+			ObjectMeta: svc.ObjectMeta,
+			Status:     svc.Status,
 		})
 	}
 	return svcList

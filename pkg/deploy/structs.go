@@ -126,7 +126,12 @@ func (r *DeployRequest) Validate() error {
 	return nil
 }
 
-type DeploymentResponse struct{}
+type DeploymentResponse struct {
+	// @description 资源内容
+	Deploy interface{} `json:"deploy,omitempty"`
+	// @description 服务内容
+	Service interface{} `json:"service,omitempty"`
+}
 
 type DeleteRequest struct {
 	// @description 资源类型 可选 Deployment | StatefulSet | Service
@@ -147,18 +152,23 @@ func (r *DeleteRequest) Validate() error {
 type DeleteResponse struct{}
 
 type ExpansionRequest struct {
-	// @description 资源类型 可选 Deployment | StatefulSet | Service
+	// @description 资源类型 可选 Deployment | StatefulSet
 	Kind string `json:"kind"`
 	// @description 命名空间
 	Namespace string `json:"namespace"`
 	// @description 资源名称
 	Name string `json:"name"`
-	// @description 扩容大小
-	Replicas int32 `json:"replicas"`
+	//// @description cpu
+	//Cpu string `json:"cpu"`
+	//// @description cpu上限
+	//MaxCpu string `json:"maxCpu"`
+	//// @description 内存
+	//Memory string `json:"memory"`
+	//// @description 内存上限
+	//MaxMemory string `json:"maxMemory"`
+
 	// @description 资源限制
 	Resources *apiv1.ResourceRequirements `json:"resources"`
-	// @description 镜像
-	ImagePull string `json:"imagePull"`
 }
 
 func (r *ExpansionRequest) Validate() error {
@@ -168,11 +178,33 @@ func (r *ExpansionRequest) Validate() error {
 	if r.Kind == "" || r.Name == "" || r.Namespace == "" {
 		return errors.New("资源类型 | 资源名 | 命名空间 为必填项")
 	}
-	r.ImagePull = strings.TrimSpace(r.ImagePull)
 	return nil
 }
 
 type ExpansionResponse struct{}
+
+type StretchRequest struct {
+	// @description 资源类型 可选 Deployment | StatefulSet
+	Kind string `json:"kind"`
+	// @description 命名空间
+	Namespace string `json:"namespace"`
+	// @description 资源名称
+	Name string `json:"name"`
+	// @description 扩容大小
+	Replicas int32 `json:"replicas"`
+}
+
+func (r *StretchRequest) Validate() error {
+	r.Kind = strings.TrimSpace(r.Kind)
+	r.Name = strings.TrimSpace(r.Name)
+	r.Namespace = strings.TrimSpace(r.Namespace)
+	if r.Kind == "" || r.Name == "" || r.Namespace == "" {
+		return errors.New("资源类型 | 资源名 | 命名空间 为必填项")
+	}
+	return nil
+}
+
+type StretchResponse struct{}
 
 type NamespaceRequest struct {
 	// @description 命名空间
@@ -188,3 +220,26 @@ func (r *NamespaceRequest) Validate() error {
 }
 
 type NamespaceResponse struct{}
+
+type RollbackRequest struct {
+	// @description 命名空间
+	Namespace string `json:"namespace"`
+	// @description 资源类型
+	Kind string `json:"kind"`
+	// @description 资源名
+	Name string `json:"name"`
+	// @description 版本名
+	VersionName string `json:"versionName"`
+}
+
+func (r *RollbackRequest) Validate() error {
+	r.Namespace = strings.TrimSpace(r.Namespace)
+	r.Kind = strings.TrimSpace(r.Kind)
+	r.VersionName = strings.TrimSpace(r.VersionName)
+	if r.Namespace == "" || r.VersionName == "" || r.Kind == "" {
+		return errors.New("参数不能为空")
+	}
+	return nil
+}
+
+type RollbackResponse struct{}

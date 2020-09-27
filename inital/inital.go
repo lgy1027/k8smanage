@@ -102,7 +102,6 @@ func InitCfg(opts *Options) error {
 	if err != nil {
 		return log.Error("ERROR", " create metrics client err: ", err)
 	}
-
 	err = cfg.Init()
 	if err != nil {
 		return log.Error("action ", " failed to load cfgFile ", " cfgFile ", cfgFile, " err: ", err.Error())

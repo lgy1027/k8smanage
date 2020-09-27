@@ -8,8 +8,10 @@ type Endpoints struct {
 	UploadEndpoint    endpoint.Endpoint
 	DeleteEndpoint    endpoint.Endpoint
 	ExpansionEndpoint endpoint.Endpoint
+	StretchEndpoint   endpoint.Endpoint
 	CreateNsEndpoint  endpoint.Endpoint
 	DeleteNsEndpoint  endpoint.Endpoint
+	RollbackEndpoint  endpoint.Endpoint
 }
 
 // NewEndpoints return a *Endpoints
@@ -19,7 +21,9 @@ func NewEndpoints(svc Service) Endpoints {
 		UploadEndpoint:    MakeUploadDeployEndpoint(svc),
 		DeleteEndpoint:    MakeDeleteEndpoint(svc),
 		ExpansionEndpoint: MakeExpansionEndpoint(svc),
+		StretchEndpoint:   MakeStretchEndpoint(svc),
 		CreateNsEndpoint:  MakeCreateNsEndpoint(svc),
 		DeleteNsEndpoint:  MakeDeleteNsEndpoint(svc),
+		RollbackEndpoint:  MakeRollbackEndpoint(svc),
 	}
 }

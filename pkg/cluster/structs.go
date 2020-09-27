@@ -42,18 +42,28 @@ type NodeResponse struct {
 	Node  model.NodeDetail `json:"node"`
 }
 
-type NameSpacesRequest struct {
-	// @description 命名空间 非必填
-	Namespace string `json:"namespace"`
+type NsRequest struct{}
+
+type NsResponse struct {
+	Num        int                     `json:"num,omitempty"`
+	Namespaces []model.NamespaceDetail `json:"namespaces,omitempty"`
 }
 
-func (r *NameSpacesRequest) Validate() error {
-	r.Namespace = strings.TrimSpace(r.Namespace)
+type NameSpaceRequest struct {
+	NameSpace string `query:"namespace"`
+}
+
+func (r *NameSpaceRequest) Validate() error {
+	r.NameSpace = strings.TrimSpace(r.NameSpace)
+	if r.NameSpace == "" {
+		return errors.New("命名空间不能为空")
+	}
 	return nil
 }
 
-type NameSpacesResponse struct {
-	Namespaces []model.NamespaceDetail `json:"namespaces,omitempty"`
+type NameSpaceResponse struct {
+	Exist      bool                  `json:"exist,omitempty"`
+	Namespaces model.NamespaceDetail `json:"namespace,omitempty"`
 }
 
 type PodInfoRequest struct {
@@ -85,6 +95,8 @@ type PodInfoResponse struct {
 type PodsRequest struct {
 	// @description 命名空间
 	NameSpace string `json:"namespace"`
+	// @description 节点
+	NodeName string `json:"nodeName"`
 }
 
 func (r *PodsRequest) Validate() error {
@@ -131,11 +143,36 @@ type ServiceResponse struct {
 }
 
 type GetYamlRequest struct {
-	Kind      string `query:"kind"`
+	// @description 资源类型
+	Kind string `query:"kind"`
+	// @description 命名空间
 	Namespace string `query:"namespace"`
-	Name      string `query:"name"`
+	// @description 资源名
+	Name string `query:"name"`
 }
 
 type GetYamlResponse struct {
 	Yaml map[string]interface{} `json:"yaml,omitempty"`
+}
+
+type EventRequest struct {
+	// @description 事件类型   0 node 1 Deployment 2 StatefulSet 3 Service 4 pod
+	Kind      int    `query:"kind"`
+	Namespace string `query:"namespace"`
+	Name      string `query:"name"`
+}
+
+type EventResponse struct {
+	Event []model.EventData `json:"event,omitempty"`
+}
+
+type VersionRequest struct {
+	Namespace string `query:"namespace"`
+	Name      string `query:"name"`
+	// @description 标签 app=demo
+	Label string `query:"label"`
+}
+
+type VersionResponse struct {
+	VersionList []model.Versions `json:"versions,omitempty"`
 }

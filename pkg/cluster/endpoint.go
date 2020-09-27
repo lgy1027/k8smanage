@@ -7,6 +7,7 @@ type Endpoints struct {
 	NodesEndpoint       endpoint.Endpoint
 	ClusterEndpoint     endpoint.Endpoint
 	NodeEndpoint        endpoint.Endpoint
+	NsEndpoint          endpoint.Endpoint
 	NameSpaceEndpoint   endpoint.Endpoint
 	PodInfoEndpoint     endpoint.Endpoint
 	PodLogEndpoint      endpoint.Endpoint
@@ -15,6 +16,8 @@ type Endpoints struct {
 	StatefulSetEndpoint endpoint.Endpoint
 	ServiceEndpoint     endpoint.Endpoint
 	GetYamlEndpoint     endpoint.Endpoint
+	EventEndpoint       endpoint.Endpoint
+	VersionEndpoint     endpoint.Endpoint
 }
 
 // NewEndpoints return a *Endpoints
@@ -23,6 +26,7 @@ func NewEndpoints(svc Service) Endpoints {
 		ClusterEndpoint:     MakeClusterEndpoint(svc),
 		NodesEndpoint:       MakeNodesEndpoint(svc),
 		NodeEndpoint:        MakeNodeEndpoint(svc),
+		NsEndpoint:          MakeNsEndpoint(svc),
 		NameSpaceEndpoint:   MakeNameSpaceEndpoint(svc),
 		PodInfoEndpoint:     MakePodInfoEndpoint(svc),
 		PodLogEndpoint:      MakePodLogEndpoint(svc),
@@ -31,5 +35,7 @@ func NewEndpoints(svc Service) Endpoints {
 		StatefulSetEndpoint: MakeStatefulSetEndpoint(svc),
 		ServiceEndpoint:     MakeServiceEndpoint(svc),
 		GetYamlEndpoint:     MakeGetYamlEndpoint(svc),
+		EventEndpoint:       MakeEventEndpoint(svc),
+		VersionEndpoint:     MakeVersionEndpoint(svc),
 	}
 }

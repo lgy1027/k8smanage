@@ -83,11 +83,35 @@ func MakeNodeEndpoint(svc Service) endpoint.Endpoint {
 	}
 }
 
-func (s *Endpoints) NameSpaces(ctx context.Context, request *NameSpacesRequest) (*NameSpacesResponse, error) {
-	if resp, err := s.NodeEndpoint(ctx, request); err != nil {
+func (s *Endpoints) Ns(ctx context.Context, request *NsRequest) (*NsResponse, error) {
+	if resp, err := s.NsEndpoint(ctx, request); err != nil {
 		return nil, err
 	} else {
-		return resp.(*NameSpacesResponse), nil
+		return resp.(*NsResponse), nil
+	}
+}
+
+func MakeNsEndpoint(svc Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		if v, ok := request.(Validator); ok {
+			if err = v.Validate(); err != nil {
+				return nil, err
+			}
+		}
+
+		if req, ok := request.(*NsRequest); !ok {
+			return nil, tipErrors.WithTipMessage(errors.New("MakeNsEndpoint"), "内部错误")
+		} else {
+			return svc.Ns(ctx, req)
+		}
+	}
+}
+
+func (s *Endpoints) NameSpace(ctx context.Context, request *NameSpaceRequest) (*NameSpaceResponse, error) {
+	if resp, err := s.NameSpaceEndpoint(ctx, request); err != nil {
+		return nil, err
+	} else {
+		return resp.(*NameSpaceResponse), nil
 	}
 }
 
@@ -99,10 +123,10 @@ func MakeNameSpaceEndpoint(svc Service) endpoint.Endpoint {
 			}
 		}
 
-		if req, ok := request.(*NameSpacesRequest); !ok {
+		if req, ok := request.(*NameSpaceRequest); !ok {
 			return nil, tipErrors.WithTipMessage(errors.New("MakeNameSpaceEndpoint"), "内部错误")
 		} else {
-			return svc.NameSpaces(ctx, req)
+			return svc.NameSpace(ctx, req)
 		}
 	}
 }
@@ -271,6 +295,54 @@ func MakeGetYamlEndpoint(svc Service) endpoint.Endpoint {
 			return nil, tipErrors.WithTipMessage(errors.New("MakeGetYamlEndpoint"), "内部错误")
 		} else {
 			return svc.GetYaml(ctx, req)
+		}
+	}
+}
+
+func (s *Endpoints) Event(ctx context.Context, request *EventRequest) (*EventResponse, error) {
+	if resp, err := s.EventEndpoint(ctx, request); err != nil {
+		return nil, err
+	} else {
+		return resp.(*EventResponse), nil
+	}
+}
+
+func MakeEventEndpoint(svc Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		if v, ok := request.(Validator); ok {
+			if err = v.Validate(); err != nil {
+				return nil, err
+			}
+		}
+
+		if req, ok := request.(*EventRequest); !ok {
+			return nil, tipErrors.WithTipMessage(errors.New("MakeEventEndpoint"), "内部错误")
+		} else {
+			return svc.Event(ctx, req)
+		}
+	}
+}
+
+func (s *Endpoints) VersionList(ctx context.Context, request *VersionRequest) (*VersionResponse, error) {
+	if resp, err := s.VersionEndpoint(ctx, request); err != nil {
+		return nil, err
+	} else {
+		return resp.(*VersionResponse), nil
+	}
+}
+
+func MakeVersionEndpoint(svc Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		if v, ok := request.(Validator); ok {
+			if err = v.Validate(); err != nil {
+				return nil, err
+			}
+		}
+
+		if req, ok := request.(*VersionRequest); !ok {
+			return nil, tipErrors.WithTipMessage(errors.New("MakeVersionEndpoint"), "内部错误")
+		} else {
+			return svc.VersionList(ctx, req)
 		}
 	}
 }

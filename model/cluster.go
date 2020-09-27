@@ -3,6 +3,7 @@ package model
 import (
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type Cluster struct {
@@ -37,7 +38,7 @@ type NodeDetail struct {
 	PodNum int64 `json:"podNum,omitempty"`
 	// @description 部署的pod总量
 	PodTotal int64 `json:"podTotal,omitempty"`
-	// @description 部署的pod总量
+	// @description 运行中的pod总量
 	PodRun int64 `json:"podRun,omitempty"`
 	// @description 是否有效
 	IsValid string `json:"isValid,omitempty"`
@@ -68,6 +69,8 @@ type NodeDetail struct {
 	// @description 集群名
 	ClusterName string         `json:"clusterName,omitempty"`
 	Resource    ResourceDetail `json:"resource,omitempty"`
+	// @description 节点状态
+	Conditions []v1.NodeCondition `json:"conditions,omitempty"`
 }
 
 type PodDetail struct {
@@ -128,6 +131,14 @@ type NamespaceDetail struct {
 	CreateTime string `json:"createTime,omitempty"`
 	// @description 状态 可选  Active： 正常使用   Terminating：正在终止
 	Status string `json:"status,omitempty"`
+	// @description 无状态数量
+	DeploymentNum int `json:"deploymentNum,omitempty"`
+	// @description 有状态数量
+	StatefulSetNum int `json:"statefulSetNum,omitempty"`
+	// @description 服务数量
+	ServiceNum int `json:"serviceNum,omitempty"`
+	// @description 容器数量
+	PodNum int `json:"podNum,omitempty"`
 	// @description 无状态资源
 	DeploymentList []DeploymentDetail `json:"deployments,omitempty"`
 	// @description 有状态资源
@@ -138,29 +149,34 @@ type NamespaceDetail struct {
 
 type DeploymentDetail struct {
 	// @description 资源类型
-	Kind      string `json:"kind,omitempty" default:"Deployment"`
-	Name      string `json:"name,omitempty"`
-	Namespace string `json:"namespace,omitempty"`
-	//Spec      appsv1.DeploymentSpec   `json:"spec,omitempty"`
-	Status appsv1.DeploymentStatus `json:"status,omitempty"`
+	Kind        string                  `json:"kind,omitempty" default:"Deployment"`
+	Name        string                  `json:"name,omitempty"`
+	Namespace   string                  `json:"namespace,omitempty"`
+	MatchLabels map[string]string       `json:"matchLabels,omitempty"`
+	Version     string                  `json:"version,omitempty"`
+	PodDetail   []PodDetail             `json:"pods,omitempty"`
+	Status      appsv1.DeploymentStatus `json:"status,omitempty"`
 }
 
 type StatefulSetDetail struct {
 	// @description 资源类型
-	Kind      string `json:"kind" default:"StatefulSet"`
-	Name      string `json:"name,omitempty"`
-	Namespace string `json:"namespace,omitempty"`
-	//Spec      appsv1.StatefulSetSpec   `json:"spec,omitempty"`
-	Status appsv1.StatefulSetStatus `json:"status,omitempty"`
+	Kind        string                   `json:"kind" default:"StatefulSet"`
+	Name        string                   `json:"name,omitempty"`
+	Namespace   string                   `json:"namespace,omitempty"`
+	MatchLabels string                   `json:"matchLabels,omitempty"`
+	Version     int                      `json:"version,omitempty"`
+	PodDetail   []PodDetail              `json:"pods,omitempty"`
+	Status      appsv1.StatefulSetStatus `json:"status,omitempty"`
 }
 
 type ServiceDetail struct {
 	// @description 资源类型
-	Kind      string `json:"kind" default:"Service"`
-	Name      string `json:"name,omitempty"`
-	Namespace string `json:"namespace,omitempty"`
-	//Spec      v1.ServiceSpec   `json:"spec,omitempty"`
-	Status v1.ServiceStatus `json:"status,omitempty"`
+	Kind       string            `json:"kind" default:"Service"`
+	Name       string            `json:"name,omitempty"`
+	Namespace  string            `json:"namespace,omitempty"`
+	ObjectMeta metav1.ObjectMeta `json:"objectMeta,omitempty"`
+	Spec       v1.ServiceSpec    `json:"spec,omitempty"`
+	Status     v1.ServiceStatus  `json:"status,omitempty"`
 }
 
 type EventData struct {
@@ -172,4 +188,11 @@ type EventData struct {
 	Reason string `json:"reason,omitempty"`
 	// @description 主机Ip
 	Host string `json:"host,omitempty"`
+}
+
+type Versions struct {
+	// @description 版本号
+	Version string `json:"version,omitempty"`
+	// @description 版本名
+	VersionName string `json:"versionName,omitempty"`
 }

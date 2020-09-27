@@ -1,7 +1,7 @@
 deployment = "apps/v1"
 statefulSet = "apps/v1"
 service = "v1"
-task = true
+task = false
 
 [redis]
 address = "127.0.0.1:6379"   # 地址: [host:port]
