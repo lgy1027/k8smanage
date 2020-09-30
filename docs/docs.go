@@ -108,6 +108,48 @@ var doc = `{
                 }
             }
         },
+        "/cluster/v1/downloadYaml": {
+            "get": {
+                "consumes": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "file"
+                ],
+                "summary": "下载yaml文件",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "命名空间名 名字",
+                        "name": "namespace",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "资源类型",
+                        "name": "kind",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "资源名",
+                        "name": "name",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/cluster/v1/event": {
             "get": {
                 "consumes": [
@@ -119,21 +161,27 @@ var doc = `{
                 "tags": [
                     "cluster"
                 ],
-                "summary": "获取pod事件",
+                "summary": "获取事件",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "命名空间名 名字",
-                        "name": "namespace",
+                        "description": "0 node 1 Deployment 2 StatefulSet 3 Service 4 pod",
+                        "name": "kind",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "Pod名字",
+                        "description": "名",
                         "name": "name",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "命名空间名 除node外必填",
+                        "name": "namespace",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -603,48 +651,6 @@ var doc = `{
                                     }
                                 }
                             ]
-                        }
-                    }
-                }
-            }
-        },
-        "/cluster/v1/uploadYaml": {
-            "get": {
-                "consumes": [
-                    "application/octet-stream"
-                ],
-                "tags": [
-                    "file"
-                ],
-                "summary": "下载yaml文件",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "命名空间名 名字",
-                        "name": "namespace",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "资源类型",
-                        "name": "kind",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "资源名",
-                        "name": "name",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "success",
-                        "schema": {
-                            "type": "string"
                         }
                     }
                 }

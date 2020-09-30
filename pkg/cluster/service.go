@@ -624,11 +624,12 @@ func (cs *clusterService) GetYaml(ctx context.Context, req *GetYamlRequest) (*Ge
 }
 
 // @Tags cluster
-// @Summary  获取pod事件
+// @Summary  获取事件
 // @Produce  json
 // @Accept  json
-// @Param   namespace query string true "命名空间名 名字"
-// @Param   name query string true "Pod名字"
+// @Param   kind query string true "0 node 1 Deployment 2 StatefulSet 3 Service 4 pod"
+// @Param   name query string true "名"
+// @Param   namespace query string false "命名空间名 除node外必填"
 // @Success 200 {object} protocol.Response{data=EventResponse} "{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}"
 // @Router /cluster/v1/event [get]
 func (cs *clusterService) Event(ctx context.Context, req *EventRequest) (*EventResponse, error) {

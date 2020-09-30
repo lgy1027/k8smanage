@@ -699,20 +699,52 @@ paths:
       summary: 获取集群信息
       tags:
       - cluster
-  /cluster/v1/event:
+  /cluster/v1/downloadYaml:
     get:
       consumes:
-      - application/json
+      - application/octet-stream
       parameters:
       - description: 命名空间名 名字
         in: query
         name: namespace
         required: true
         type: string
-      - description: Pod名字
+      - description: 资源类型
+        in: query
+        name: kind
+        required: true
+        type: string
+      - description: 资源名
         in: query
         name: name
         required: true
+        type: string
+      responses:
+        "200":
+          description: success
+          schema:
+            type: string
+      summary: 下载yaml文件
+      tags:
+      - file
+  /cluster/v1/event:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 0 node 1 Deployment 2 StatefulSet 3 Service 4 pod
+        in: query
+        name: kind
+        required: true
+        type: string
+      - description: 名
+        in: query
+        name: name
+        required: true
+        type: string
+      - description: 命名空间名 除node外必填
+        in: query
+        name: namespace
         type: string
       produces:
       - application/json
@@ -726,7 +758,7 @@ paths:
                 data:
                   $ref: '#/definitions/cluster.EventResponse'
               type: object
-      summary: 获取pod事件
+      summary: 获取事件
       tags:
       - cluster
   /cluster/v1/getYaml:
@@ -991,34 +1023,6 @@ paths:
       summary: 获取statefulSet
       tags:
       - cluster
-  /cluster/v1/uploadYaml:
-    get:
-      consumes:
-      - application/octet-stream
-      parameters:
-      - description: 命名空间名 名字
-        in: query
-        name: namespace
-        required: true
-        type: string
-      - description: 资源类型
-        in: query
-        name: kind
-        required: true
-        type: string
-      - description: 资源名
-        in: query
-        name: name
-        required: true
-        type: string
-      responses:
-        "200":
-          description: success
-          schema:
-            type: string
-      summary: 下载yaml文件
-      tags:
-      - file
   /cluster/v1/version:
     get:
       consumes:

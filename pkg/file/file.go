@@ -17,7 +17,7 @@ import (
 // @Param   kind query string true "资源类型"
 // @Param   name query string true "资源名"
 // @success 200 {object} string "success"
-// @Router /cluster/v1/uploadYaml [get]
+// @Router /cluster/v1/downloadYaml [get]
 func HandleDownload(w http.ResponseWriter, req *http.Request) {
 	kind := req.FormValue("kind")
 	namespace := req.FormValue("namespace")

@@ -136,7 +136,7 @@ func MakeRouter(endpoints Endpoints, options ...httptransport.ServerOption) http
 			opts...,
 		))
 
-		v1.HandleFunc("/uploadYaml", file.HandleDownload)
+		v1.HandleFunc("/downloadYaml", file.HandleDownload)
 	}
 	return r
 }
