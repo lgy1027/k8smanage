@@ -76,12 +76,6 @@ func AssemblePod(node string, pods []v1.Pod, podMetricsList []v1beta1.PodMetrics
 
 func AssemblePodSimple(pod v1.Pod, podMetricsList []v1beta1.PodMetrics) model.PodDetail {
 	var wg sync.WaitGroup
-	//var event []model.EventData
-	//wg.Add(1)
-	//go func() {
-	//	event = k8s2.GetEvents(pod.GetNamespace(), pod.GetName())
-	//	wg.Done()
-	//}()
 	var resource model.ResourceDetail
 	if len(podMetricsList) > 0 {
 		wg.Add(1)

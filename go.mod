@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/BurntSushi/toml v0.3.1
+	github.com/XuHaoIgeneral/goharbor v1.0.6
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/cihub/seelog v0.0.0-20170130134532-f561c5e57575
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
