@@ -16,6 +16,15 @@ var (
 	cmd = []string{"/bin/sh"}
 )
 
+// @Tags xshell
+// @Summary  容器终端
+// @Produce  json
+// @Accept  json
+// @Param namespace path string true "namespace"
+// @Param pod path string true "pod"
+// @Param container path string true "container"
+// @Success 200 {string} json ""
+// @Router /ws/{namespace}/{pod}/{container}/shell [get]
 func ServeWsTerminal(w http.ResponseWriter, r *http.Request) {
 	pathParams := mux.Vars(r)
 	namespace := pathParams["namespace"]

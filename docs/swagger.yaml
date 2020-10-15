@@ -1228,4 +1228,64 @@ paths:
       summary: 文件部署资源
       tags:
       - resource
+  /ws/{namespace}/{pod}/{container}/log:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: namespace
+        in: path
+        name: namespace
+        required: true
+        type: string
+      - description: pod
+        in: path
+        name: pod
+        required: true
+        type: string
+      - description: container
+        in: path
+        name: container
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 日志
+      tags:
+      - xshell
+  /ws/{namespace}/{pod}/{container}/shell:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: namespace
+        in: path
+        name: namespace
+        required: true
+        type: string
+      - description: pod
+        in: path
+        name: pod
+        required: true
+        type: string
+      - description: container
+        in: path
+        name: container
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 容器终端
+      tags:
+      - xshell
 swagger: "2.0"
