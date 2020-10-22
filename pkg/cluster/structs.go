@@ -66,6 +66,24 @@ type NameSpaceResponse struct {
 	Namespaces model.NamespaceDetail `json:"namespace,omitempty"`
 }
 
+type PodLogRequest struct {
+	// @description 命名空间
+	NameSpace string `query:"namespace"`
+	// @description pod
+	PodName string `query:"podName"`
+	// @description container
+	Container string `query:"container"`
+	// @description previous
+	Previous bool `query:"previous"`
+	// @description follow
+	Follow bool `query:"follow"`
+}
+
+type PodLogResponse struct {
+	// @description pod日志
+	Log *LogDetails `json:"log,omitempty"`
+}
+
 type PodInfoRequest struct {
 	// @description 命名空间
 	NameSpace string `query:"namespace"`
@@ -107,11 +125,6 @@ func (r *PodsRequest) Validate() error {
 type PodsResponse struct {
 	// @description pods列表
 	Pods []model.PodDetail `json:"pods,omitempty"`
-}
-
-type PodLogResponse struct {
-	// @description pod日志
-	Log string `json:"log,omitempty"`
 }
 
 type ResourceRequest struct {

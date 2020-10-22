@@ -20,6 +20,11 @@ import (
 	"sync"
 )
 
+var (
+	lineReadLimit int64 = 5000
+	byteReadLimit int64 = 5000000
+)
+
 type Service interface {
 	Cluster(ctx context.Context, req *ClusterRequest) (*ClusterResponse, error)
 	Nodes(ctx context.Context, req *NodesRequest) (*NodesResponse, error)
@@ -27,7 +32,7 @@ type Service interface {
 	Ns(ctx context.Context, req *NsRequest) (*NsResponse, error)
 	NameSpace(ctx context.Context, req *NameSpaceRequest) (*NameSpaceResponse, error)
 	PodInfo(ctx context.Context, req *PodInfoRequest) (*PodInfoResponse, error)
-	PodLog(ctx context.Context, req *PodInfoRequest) (*PodLogResponse, error)
+	//PodLog(ctx context.Context, req *PodLogRequest) (*PodLogResponse, error)
 	Pods(ctx context.Context, req *PodsRequest) (*PodsResponse, error)
 	Deployment(ctx context.Context, req *ResourceRequest) (*DeploymentsResponse, error)
 	StatefulSet(ctx context.Context, req *ResourceRequest) (*StatefulSetsResponse, error)
@@ -88,20 +93,20 @@ func (cs *clusterService) Cluster(ctx context.Context, req *ClusterRequest) (*Cl
 		if fmt.Sprintf("%s", node.Status.Conditions[len(node.Status.Conditions)-1].Type) == "Ready" {
 			cluster.RunNodeNum++
 			metric, err := k8s2.GetNodeMetrics(node.GetName())
-			if err != nil {
-				log.Debugf("获取节点指标失败,节点: %s, err: %v\n", node.GetName(), err.Error())
-				return nil, k8s2.ErrMetricsGet
+			if err == nil {
+				//log.Debugf("获取节点指标失败,节点: %s, err: %v\n", node.GetName(), err.Error())
+				//return nil, k8s2.ErrMetricsGet
+				resource := assemble.AssembleResource(*metric, node)
+				nodeDetail.Resource = resource
+				cpuNum, _ := strconv.ParseFloat(resource.CpuNum, 64)
+				cpuUse, _ := strconv.ParseFloat(resource.CpuUse, 64)
+				memSize, _ := strconv.ParseFloat(resource.MemSize, 64)
+				memUse, _ := strconv.ParseFloat(resource.MemUse, 64)
+				cpu += cpuNum
+				mem += memSize
+				useCpu += cpuUse
+				useMem += memUse
 			}
-			resource := assemble.AssembleResource(*metric, node)
-			nodeDetail.Resource = resource
-			cpuNum, _ := strconv.ParseFloat(resource.CpuNum, 64)
-			cpuUse, _ := strconv.ParseFloat(resource.CpuUse, 64)
-			memSize, _ := strconv.ParseFloat(resource.MemSize, 64)
-			memUse, _ := strconv.ParseFloat(resource.MemUse, 64)
-			cpu += cpuNum
-			mem += memSize
-			useCpu += cpuUse
-			useMem += memUse
 		}
 		cluster.Nodes = append(cluster.Nodes, nodeDetail)
 	}
@@ -143,12 +148,10 @@ func (cs *clusterService) Nodes(ctx context.Context, req *NodesRequest) (*NodesR
 		nodeDetail.PodRun = int64(len(list.Items))
 		if fmt.Sprintf("%s", node.Status.Conditions[len(node.Status.Conditions)-1].Type) == "Ready" {
 			metric, err := k8s2.GetNodeMetrics(node.GetName())
-			if err != nil {
-				log.Debugf("获取节点指标失败,节点: %s, err: %v\n", node.GetName(), err.Error())
-				return nil, k8s2.ErrMetricsGet
+			if err == nil {
+				resource := assemble.AssembleResource(*metric, node)
+				nodeDetail.Resource = resource
 			}
-			resource := assemble.AssembleResource(*metric, node)
-			nodeDetail.Resource = resource
 		}
 		nodeList = append(nodeList, nodeDetail)
 	}
@@ -180,11 +183,11 @@ func (cs *clusterService) Node(ctx context.Context, req *NodeRequest) (*NodeResp
 	)
 	if fmt.Sprintf("%s", node.Status.Conditions[len(node.Status.Conditions)-1].Type) == "Ready" {
 		metric, err := k8s2.GetNodeMetrics(node.GetName())
-		if err != nil {
-			log.Debugf("获取节点指标失败,节点: %s, err: %v\n", node.GetName(), err.Error())
-			return nil, k8s2.ErrMetricsGet
+		if err == nil {
+			//log.Debugf("获取节点指标失败,节点: %s, err: %v\n", node.GetName(), err.Error())
+			//return nil, k8s2.ErrMetricsGet
+			metrics = append(metrics, *metric)
 		}
-		metrics = append(metrics, *metric)
 	}
 	nodeDetail := assemble.AssembleNode(*node, nil, metrics, nil)
 
@@ -259,7 +262,7 @@ func (cs *clusterService) NameSpace(ctx context.Context, req *NameSpaceRequest) 
 	pods, err := client.GetBaseClient().Pod.List(req.NameSpace, metav1.ListOptions{})
 	if err != nil {
 		log.Debug("获取服务列表失败,err:", err.Error())
-		return nil, k8s2.ErrPodGet
+		return nil, k8s2.ErrPodsGet
 	}
 	namespaceDetail.Name = namespace.GetName()
 	namespaceDetail.CreateTime = namespace.GetCreationTimestamp().String()
@@ -301,19 +304,118 @@ func (cs *clusterService) PodInfo(ctx context.Context, req *PodInfoRequest) (*Po
 	}, nil
 }
 
-// @Tags cluster
-// @Summary  获取pod日志
-// @Produce  json
-// @Accept  json
-// @Param   namespace query string true "命名空间名 名字"
-// @Param   podName query string true "Pod名字"
-// @Success 200 {object} protocol.Response{data=PodLogResponse} "{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}"
-// @Router /cluster/v1/podLog [get]
-func (cs *clusterService) PodLog(ctx context.Context, req *PodInfoRequest) (*PodLogResponse, error) {
-	podLog, err := client.GetBaseClient().Pod.Log(req.NameSpace, req.PodName)
-	return &PodLogResponse{
-		Log: podLog,
-	}, err
+////@Tags cluster
+////@Summary  获取pod日志
+////@Produce  json
+////@Accept  json
+////@Param   namespace query string true "命名空间名 名字"
+////@Param   podName query string true "Pod名字"
+////@Param   container query string false "容器名"
+////@Param   follow query boolean false "是否开启实时日志"
+////@Param   previous query boolean false "显示历史日志"
+////@Success 200 {object} protocol.Response{data=PodLogResponse} "{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}"
+////@Router /cluster/v1/podLog [get]
+//func (cs *clusterService) PodLog(ctx context.Context, req *PodLogRequest) (*PodLogResponse, error) {
+//	pod, err := client.GetBaseClient().Pod.Get(req.NameSpace, req.PodName)
+//	if err != nil {
+//		log.Error("获取pod失败,err:", err.Error())
+//		return nil, k8s2.ErrPodGet
+//	}
+//	if req.Container == "" {
+//		req.Container = pod.Spec.Containers[0].Name
+//	}
+//	var refLineNum = 0
+//	var offsetFrom = 2000000000
+//	var offsetTo = 2000000100
+//
+//	refTimestamp := NewestTimestamp
+//	logSelector := DefaultSelection
+//
+//	logSelector = &Selection{
+//		ReferencePoint: LogLineId{
+//			LogTimestamp: LogTimestamp(refTimestamp),
+//			LineNum:      refLineNum,
+//		},
+//		OffsetFrom:      offsetFrom,
+//		OffsetTo:        offsetTo,
+//		LogFilePosition: "end",
+//	}
+//
+//	logOptions := &v1.PodLogOptions{
+//		Container:  req.Container,
+//		Follow:     req.Follow,
+//		Previous:   req.Previous,
+//		Timestamps: true,
+//	}
+//
+//	if logSelector.LogFilePosition == Beginning {
+//		logOptions.LimitBytes = &byteReadLimit
+//	} else {
+//		logOptions.TailLines = &lineReadLimit
+//	}
+//	readCloser, err := inital.GetGlobal().GetClientSet().CoreV1().RESTClient().Get().Namespace(req.NameSpace).
+//		Name(req.PodName).Resource("pods").
+//		SubResource("log").VersionedParams(logOptions, scheme.ParameterCodec).
+//		Stream()
+//	//podLog, err := client.GetBaseClient().Pod.Log(req.NameSpace, req.PodName)
+//	if err != nil {
+//		log.Error("获取日志流失败,err:", err.Error())
+//		return nil, k8s2.ErrLogGet
+//	}
+//	defer func() {
+//		_ = readCloser.Close()
+//	}()
+//	//if req.Follow {
+//	//	bufReader := bufio.NewReaderSize(readCloser, 256)
+//	//	for {
+//	//		line, _, err := bufReader.ReadLine()
+//	//		// line = []byte(fmt.Sprintf("%s", string(line)))
+//	//		line = utils.ToValidUTF8(line, []byte(""))
+//	//		if err != nil {
+//	//			if err == io.EOF {
+//	//				_, err = .Write(line)
+//	//			}
+//	//			return err
+//	//		}
+//	//		// line = append(line, []byte("\r\n")...)
+//	//		// line = append(bytes.Trim(line, " "), []byte("\r\n")...)
+//	//		_, err = writer.Write(line)
+//	//		if err != nil {
+//	//			return err
+//	//		}
+//	//	}
+//	//}
+//
+//	result, err := ioutil.ReadAll(readCloser)
+//	if err != nil {
+//		log.Error("日志流读取失败,err:", err.Error())
+//		return nil, k8s2.ErrLogGet
+//	}
+//	rawLogs := string(result)
+//	parsedLines := ToLogLines(rawLogs)
+//	logLines, fromDate, toDate, logSelection, lastPage := parsedLines.SelectLogs(logSelector)
+//	readLimitReached := isReadLimitReached(int64(len(rawLogs)), int64(len(parsedLines)), logSelector.LogFilePosition)
+//	truncated := readLimitReached && lastPage
+//	info := LogInfo{
+//		PodName:       req.PodName,
+//		ContainerName: req.Container,
+//		FromDate:      fromDate,
+//		ToDate:        toDate,
+//		Truncated:     truncated,
+//	}
+//
+//	return &PodLogResponse{
+//		Log: &LogDetails{
+//			Info:      info,
+//			Selection: logSelection,
+//			LogLines:  logLines,
+//		},
+//	}, err
+//}
+
+func isReadLimitReached(bytesLoaded int64, linesLoaded int64, logFilePosition string) bool {
+	return (logFilePosition == Beginning && bytesLoaded >= byteReadLimit) ||
+		(logFilePosition == End && linesLoaded >= lineReadLimit)
 }
 
 // @Tags cluster

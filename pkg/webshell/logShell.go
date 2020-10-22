@@ -44,15 +44,19 @@ func newWsLogger(w http.ResponseWriter, r *http.Request, responseHeader http.Hea
 	return session, nil
 }
 
-// @Tags xshell
-// @Summary  日志
-// @Produce  json
-// @Accept  json
-// @Param namespace path string true "namespace"
-// @Param pod path string true "pod"
-// @Param container path string true "container"
-// @Success 200 {string} json ""
-// @Router /ws/{namespace}/{pod}/{container}/log [get]
+/**
+@Tags xshell
+@Summary  日志
+@Produce  json
+@Accept  json
+@Param namespace path string true "namespace"
+@Param pod path string true "pod"
+@Param container path string true "container"
+@Param tail path int true "行"
+@Param follow path bool false "实时日志"
+@Success 200 {string} json ""
+@Router /ws/{namespace}/{pod}/{container}/log [get]
+*/
 func ServeWsLogs(w http.ResponseWriter, r *http.Request) {
 	pathParams := mux.Vars(r)
 	namespace := pathParams["namespace"]

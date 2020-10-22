@@ -472,56 +472,6 @@ var doc = `{
                 }
             }
         },
-        "/cluster/v1/podLog": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "cluster"
-                ],
-                "summary": "获取pod日志",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "命名空间名 名字",
-                        "name": "namespace",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Pod名字",
-                        "name": "podName",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "{\"errno\":0,\"errmsg\":\"\",\"data\":{},\"extr\":{\"inner_error\":\"\",\"error_stack\":\"\"}}",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/protocol.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/cluster.PodLogResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
         "/cluster/v1/pods": {
             "post": {
                 "consumes": [
@@ -984,7 +934,7 @@ var doc = `{
                 }
             }
         },
-        "/ws/{namespace}/{pod}/{container}/log": {
+        "/v1/pod/log": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -993,35 +943,40 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "xshell"
+                    "cluster"
                 ],
-                "summary": "日志",
+                "summary": "获取pod日志",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "namespace",
+                        "description": "命名空间名 名字",
                         "name": "namespace",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "pod",
-                        "name": "pod",
-                        "in": "path",
+                        "description": "Pod名字",
+                        "name": "podName",
+                        "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "container",
+                        "description": "容器名",
                         "name": "container",
-                        "in": "path",
-                        "required": true
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "是否开启实时日志",
+                        "name": "follow",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "level=error ts=2020-10-22T01:50:38.331Z ...",
                         "schema": {
                             "type": "string"
                         }
@@ -1183,15 +1138,6 @@ var doc = `{
                     "description": "@description pod信息",
                     "type": "object",
                     "$ref": "#/definitions/model.PodDetail"
-                }
-            }
-        },
-        "cluster.PodLogResponse": {
-            "type": "object",
-            "properties": {
-                "log": {
-                    "description": "@description pod日志",
-                    "type": "string"
                 }
             }
         },

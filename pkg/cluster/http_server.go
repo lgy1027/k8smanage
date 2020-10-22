@@ -87,12 +87,12 @@ func MakeRouter(endpoints Endpoints, options ...httptransport.ServerOption) http
 			opts...,
 		))
 
-		v1.Handle("/podLog", httptransport.NewServer(
-			endpoints.PodLogEndpoint,
-			protocol.LogRequest(protocol.MakeDecodeHTTPRequest(func() interface{} { return &PodInfoRequest{} })),
-			protocol.EncodeHTTPGenericResponse,
-			opts...,
-		))
+		//v1.Handle("/podLog", httptransport.NewServer(
+		//	endpoints.PodLogEndpoint,
+		//	protocol.LogRequest(protocol.MakeDecodeHTTPRequest(func() interface{} { return &PodLogRequest{} })),
+		//	protocol.EncodeHTTPGenericResponse,
+		//	opts...,
+		//))
 
 		v1.Handle("/deployment", httptransport.NewServer(
 			endpoints.DeploymentEndpoint,

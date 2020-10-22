@@ -28,6 +28,7 @@ func Mux(open bool) *http.ServeMux {
 	r.Handle("/resource/", http.StripPrefix("/resource", deployHttpHandler))
 	r.HandleFunc("/ws/{namespace}/{pod}/{container}/log", webshell.ServeWsLogs)
 	r.HandleFunc("/ws/{namespace}/{pod}/{container}/shell", webshell.ServeWsTerminal)
+	r.HandleFunc("/v1/pod/log/", webshell.LogHandle)
 	log.Info("action", "success init service")
 	if open {
 		go func() {

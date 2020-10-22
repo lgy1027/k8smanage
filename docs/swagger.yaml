@@ -73,12 +73,6 @@ definitions:
         description: '@description pod信息'
         type: object
     type: object
-  cluster.PodLogResponse:
-    properties:
-      log:
-        description: '@description pod日志'
-        type: string
-    type: object
   cluster.PodsRequest:
     properties:
       namespace:
@@ -916,36 +910,6 @@ paths:
       summary: 获取pod信息
       tags:
       - cluster
-  /cluster/v1/podLog:
-    get:
-      consumes:
-      - application/json
-      parameters:
-      - description: 命名空间名 名字
-        in: query
-        name: namespace
-        required: true
-        type: string
-      - description: Pod名字
-        in: query
-        name: podName
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: '{"errno":0,"errmsg":"","data":{},"extr":{"inner_error":"","error_stack":""}}'
-          schema:
-            allOf:
-            - $ref: '#/definitions/protocol.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/cluster.PodLogResponse'
-              type: object
-      summary: 获取pod日志
-      tags:
-      - cluster
   /cluster/v1/pods:
     post:
       consumes:
@@ -1228,36 +1192,39 @@ paths:
       summary: 文件部署资源
       tags:
       - resource
-  /ws/{namespace}/{pod}/{container}/log:
+  /v1/pod/log:
     get:
       consumes:
       - application/json
       parameters:
-      - description: namespace
-        in: path
+      - description: 命名空间名 名字
+        in: query
         name: namespace
         required: true
         type: string
-      - description: pod
-        in: path
-        name: pod
+      - description: Pod名字
+        in: query
+        name: podName
         required: true
         type: string
-      - description: container
-        in: path
+      - description: 容器名
+        in: query
         name: container
-        required: true
         type: string
+      - description: 是否开启实时日志
+        in: query
+        name: follow
+        type: boolean
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: level=error ts=2020-10-22T01:50:38.331Z ...
           schema:
             type: string
-      summary: 日志
+      summary: 获取pod日志
       tags:
-      - xshell
+      - cluster
   /ws/{namespace}/{pod}/{container}/shell:
     get:
       consumes:

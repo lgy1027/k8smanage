@@ -39,7 +39,7 @@ func (pos *Pod) Log(namespace, name string) (string, error) {
 	req := inital.GetGlobal().GetClientSet().CoreV1().Pods(namespace).GetLogs(name, &apiv1.PodLogOptions{})
 	podLogs, err := req.Stream()
 	if err != nil {
-		return "", errors.New("内部错误")
+		return "", errors.New("查看日志失败")
 	}
 	defer podLogs.Close()
 

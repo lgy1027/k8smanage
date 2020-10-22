@@ -19,7 +19,8 @@ var (
 	ErrDeploymentGet       = errors.New("获取无状态服务失败")
 	ErrStatefulSetGet      = errors.New("获取有状态服务失败")
 	ErrServiceGet          = errors.New("获取服务列表失败")
-	ErrPodGet              = errors.New("获取容器列表失败")
+	ErrPodsGet             = errors.New("获取容器列表失败")
+	ErrPodGet              = errors.New("获取容器失败")
 	ErrReplicaSetGet       = errors.New("副本集获取失败")
 	ErrUpdate              = errors.New("更新失败")
 	ErrInvokerKind         = errors.New("未知资源类型")
@@ -27,6 +28,7 @@ var (
 	ErrDelete              = errors.New("删除失败")
 	ErrCreate              = errors.New("创建失败")
 	ErrExist               = errors.New("资源已存在")
+	ErrLogGet              = errors.New("获取日志失败")
 )
 
 func PrintErr(err error) error {
