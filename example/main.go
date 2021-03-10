@@ -68,16 +68,44 @@ func init() {
 }
 
 func main() {
-	dp, err := clientset.AppsV1().ReplicaSets("lgy").List(metav1.ListOptions{
-		LabelSelector: "app=demo",
+	//dp, err := clientset.AppsV1().ReplicaSets("lgy").List(metav1.ListOptions{
+	//	LabelSelector: "app=demo",
+	//})
+	//fmt.Println(err)
+	//fmt.Println(dp)
+	//
+	//dsp, err := clientset.AppsV1().Deployments("lgy").List(metav1.ListOptions{})
+	//fmt.Println(err)
+	//fmt.Println(dsp)
+	//getNode()
+
+	labelSelector := &metav1.LabelSelector{
+		MatchLabels: map[string]string{
+			"node-role.kubernetes.io/edge":  "",
+			"node-role.kubernetes.io/agent": "",
+		},
+	}
+	_, err := metav1.LabelSelectorAsMap(labelSelector)
+	items, err := metrics.MetricsV1beta1().PodMetricses("").List(metav1.ListOptions{
+		//FieldSelector: fmt.Sprintf("%s=%s", "spec.nodeName", "edge01"),
 	})
 	fmt.Println(err)
-	fmt.Println(dp)
-
-	dsp, err := clientset.AppsV1().Deployments("lgy").List(metav1.ListOptions{})
-	fmt.Println(err)
-	fmt.Println(dsp)
-
+	fmt.Println(items)
+	//total_cpu, total_mem := int64(0), int64(0)
+	//for _, con := range items.Containers {
+	//	total_cpu += con.Usage.Cpu().MilliValue()
+	//	total_mem += con.Usage.Memory().MilliValue()
+	//	fmt.Println(strconv.FormatInt(con.Usage.Cpu().MilliValue(), 10))
+	//	fmt.Println(con.Usage.Memory().MilliValue())
+	//}
+	//fmt.Println("================================")
+	//fmt.Println(total_cpu)
+	//fmt.Println(total_mem)
+	//fmt.Println("================================")
+	//memUseValue := decimal.NewFromInt(total_mem)
+	//memUseValue = memUseValue.Div(decimal.NewFromInt(1024)).Div(decimal.NewFromInt(1024)).DivRound(decimal.NewFromInt(1024), 0)
+	//fmt.Println(memUseValue)
+	//getNode()
 }
 
 func Rollback() {
@@ -251,8 +279,18 @@ func testNs() {
 }
 
 func getNode() {
+	//labelSelector := &metav1.LabelSelector{
+	//	MatchLabels: map[string]string{
+	//		"node-role.kubernetes.io/edge":  "",
+	//		"node-role.kubernetes.io/agent": "",
+	//	},
+	//}
+	//labelMap, err := metav1.LabelSelectorAsMap(labelSelector)
+
 	//获取NODE
-	nodes, err := clientset.CoreV1().Nodes().List(metav1.ListOptions{})
+	nodes, err := clientset.CoreV1().Nodes().List(metav1.ListOptions{
+		//LabelSelector: labels.SelectorFromSet(labelMap).String(),
+	})
 	if err != nil {
 		panic(err)
 	}
@@ -264,44 +302,45 @@ func getNode() {
 		fmt.Printf("nodeName:%v,num:%v\n", node.GetName(), len(list.Items))
 	}
 
-	//var storge int64
-	////var storgeUser int64
-	//for _, node := range nodes.Items {
-	//	mc, err := metrics.MetricsV1beta1().NodeMetricses().Get(node.GetName(), metav1.GetOptions{})
-	//	if err != nil {
-	//		break
-	//	}
-	//	storgeUser := mc.Usage.StorageEphemeral().String()
-	//	fmt.Println(storgeUser)
-	//	storge += node.Status.Capacity.StorageEphemeral().Value()
-	//}
-	//fmt.Println(storge)
-	//fmt.Println(storgeUser)
-	//node := nodes.Items[1]
-	//fmt.Println(node)
-	//desc, _ := node.Descriptor()
-	//fmt.Println(string(desc))
-	//name := nodes.Items[2].Name
-	//for _, nds := range nodes.Items {
-	//	fmt.Printf("NodeName: %s\n", nds.Name)
-	//}
-	//
-	////获取 指定NODE 的详细信息
-	//fmt.Println("\n ####### node详细信息 ######")
-	//nodeRel, err := clientset.CoreV1().Nodes().Get(name, metav1.GetOptions{})
-	//if err != nil {
-	//	panic(err)
-	//}
-	//fmt.Printf("Name: %s \n", nodeRel.Name)
-	//fmt.Printf("CreateTime: %s \n", nodeRel.CreationTimestamp)
-	//fmt.Printf("NowTime: %s \n", nodeRel.Status.Conditions[0].LastHeartbeatTime)
-	//fmt.Printf("kernelVersion: %s \n", nodeRel.Status.NodeInfo.KernelVersion)
-	//fmt.Printf("SystemOs: %s \n", nodeRel.Status.NodeInfo.OSImage)
-	//fmt.Printf("Cpu: %s \n", nodeRel.Status.Capacity.Cpu())
-	//fmt.Printf("docker: %s \n", nodeRel.Status.NodeInfo.ContainerRuntimeVersion)
-	//// fmt.Printf("Status: %s \n", nodeRel.Status.Conditions[len(nodes.Items[0].Status.Conditions)-1].Type)
-	//fmt.Printf("Status: %s \n", nodeRel.Status.Conditions[len(nodeRel.Status.Conditions)-1].Type)
-	//fmt.Printf("Mem: %s \n", nodeRel.Status.Allocatable.Memory().String())
+	var storge int64
+	//var storgeUser int64
+	for _, node := range nodes.Items {
+		//metrics.MetricsV1beta1().PodMetricses()
+		mc, err := metrics.MetricsV1beta1().NodeMetricses().Get(node.GetName(), metav1.GetOptions{})
+		if err != nil {
+			continue
+		}
+		storgeUser := mc.Usage.StorageEphemeral().String()
+		fmt.Println(storgeUser)
+		storge += node.Status.Capacity.StorageEphemeral().Value()
+		fmt.Println(storge)
+		fmt.Println(storgeUser)
+	}
+	node := nodes.Items[1]
+	fmt.Println(node)
+	desc, _ := node.Descriptor()
+	fmt.Println(string(desc))
+	name := nodes.Items[2].Name
+	for _, nds := range nodes.Items {
+		fmt.Printf("NodeName: %s\n", nds.Name)
+	}
+
+	//获取 指定NODE 的详细信息
+	fmt.Println("\n ####### node详细信息 ######")
+	nodeRel, err := clientset.CoreV1().Nodes().Get(name, metav1.GetOptions{})
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Name: %s \n", nodeRel.Name)
+	fmt.Printf("CreateTime: %s \n", nodeRel.CreationTimestamp)
+	fmt.Printf("NowTime: %s \n", nodeRel.Status.Conditions[0].LastHeartbeatTime)
+	fmt.Printf("kernelVersion: %s \n", nodeRel.Status.NodeInfo.KernelVersion)
+	fmt.Printf("SystemOs: %s \n", nodeRel.Status.NodeInfo.OSImage)
+	fmt.Printf("Cpu: %s \n", nodeRel.Status.Capacity.Cpu())
+	fmt.Printf("docker: %s \n", nodeRel.Status.NodeInfo.ContainerRuntimeVersion)
+	// fmt.Printf("Status: %s \n", nodeRel.Status.Conditions[len(nodes.Items[0].Status.Conditions)-1].Type)
+	fmt.Printf("Status: %s \n", nodeRel.Status.Conditions[len(nodeRel.Status.Conditions)-1].Type)
+	fmt.Printf("Mem: %s \n", nodeRel.Status.Allocatable.Memory().String())
 
 }
 
@@ -631,5 +670,5 @@ func Otherer() {
 	//}
 
 	//testNs()
-	//getNode()
+	getNode()
 }

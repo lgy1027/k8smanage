@@ -4,7 +4,6 @@ go 1.14
 
 require (
 	github.com/BurntSushi/toml v0.3.1
-	github.com/XuHaoIgeneral/goharbor v1.0.6
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/cihub/seelog v0.0.0-20170130134532-f561c5e57575
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -20,6 +19,7 @@ require (
 	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/mreiferson/go-options v1.0.0
 	github.com/pkg/errors v0.9.1
+	github.com/prometheus/client_golang v1.3.0
 	github.com/robfig/cron v1.2.0
 	github.com/shopspring/decimal v1.2.0
 	github.com/spf13/viper v1.7.1
