@@ -1,11 +1,4 @@
 /**
- * @Time : 2019-07-05 10:15
- * @Author : solacowa@gmail.com
- * @File : podlogs
- * @Software: GoLand
- */
-
-/**
  * 参考: https://github.com/kubernetes/dashboard/blob/master/src/app/backend/resource/logs/logs.go
  */
 

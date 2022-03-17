@@ -3,12 +3,12 @@ package httpserver
 import (
 	log "github.com/cihub/seelog"
 	"github.com/go-chi/chi"
+	_ "github.com/lgy1027/kubemanage/docs"
+	"github.com/lgy1027/kubemanage/pkg/cluster"
+	"github.com/lgy1027/kubemanage/pkg/deploy"
+	"github.com/lgy1027/kubemanage/pkg/webshell"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"net/http"
-	_ "relaper.com/kubemanage/docs"
-	"relaper.com/kubemanage/pkg/cluster"
-	"relaper.com/kubemanage/pkg/deploy"
-	"relaper.com/kubemanage/pkg/webshell"
 )
 
 func Mux(open bool) *http.ServeMux {

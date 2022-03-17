@@ -2,12 +2,12 @@ package file
 
 import (
 	"encoding/json"
+	"github.com/lgy1027/kubemanage/inital/client"
+	"github.com/lgy1027/kubemanage/protocol"
+	"github.com/lgy1027/kubemanage/utils"
 	goyaml "gopkg.in/yaml.v2"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"net/http"
-	"relaper.com/kubemanage/inital/client"
-	"relaper.com/kubemanage/protocol"
-	"relaper.com/kubemanage/utils"
 )
 
 // @Tags file

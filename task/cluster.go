@@ -2,9 +2,9 @@ package task
 
 import (
 	log "github.com/cihub/seelog"
+	app "github.com/lgy1027/kubemanage/cache"
+	"github.com/lgy1027/kubemanage/inital"
 	"github.com/robfig/cron"
-	app "relaper.com/kubemanage/cache"
-	"relaper.com/kubemanage/inital"
 )
 
 func ClusterTask() {

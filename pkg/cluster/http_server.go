@@ -1,10 +1,10 @@
 package cluster
 
 import (
+	"github.com/lgy1027/kubemanage/inital"
+	"github.com/lgy1027/kubemanage/pkg/file"
+	"github.com/lgy1027/kubemanage/protocol"
 	"net/http"
-	"relaper.com/kubemanage/inital"
-	"relaper.com/kubemanage/pkg/file"
-	"relaper.com/kubemanage/protocol"
 
 	"github.com/go-kit/kit/auth/jwt"
 	httptransport "github.com/go-kit/kit/transport/http"

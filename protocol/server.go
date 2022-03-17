@@ -8,11 +8,11 @@ import (
 	"encoding/json"
 	log "github.com/cihub/seelog"
 	httptransport "github.com/go-kit/kit/transport/http"
+	uerrors "github.com/lgy1027/kubemanage/utils/errors"
 	"github.com/pkg/errors"
 	"io"
 	"io/ioutil"
 	"net/http"
-	uerrors "relaper.com/kubemanage/utils/errors"
 	"time"
 )
 

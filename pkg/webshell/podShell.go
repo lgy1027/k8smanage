@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"github.com/emicklei/go-restful/log"
 	"github.com/gorilla/mux"
+	"github.com/lgy1027/kubemanage/inital"
+	"github.com/lgy1027/kubemanage/inital/client"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/remotecommand"
 	"net/http"
-	"relaper.com/kubemanage/inital"
-	"relaper.com/kubemanage/inital/client"
 )
 
 var (

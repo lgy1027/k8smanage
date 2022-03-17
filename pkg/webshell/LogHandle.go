@@ -4,14 +4,14 @@ import (
 	"bufio"
 	"encoding/json"
 	log "github.com/cihub/seelog"
+	"github.com/lgy1027/kubemanage/inital"
+	"github.com/lgy1027/kubemanage/inital/client"
+	k8s2 "github.com/lgy1027/kubemanage/k8s"
+	"github.com/lgy1027/kubemanage/protocol"
+	"github.com/lgy1027/kubemanage/utils"
 	"io"
 	v1 "k8s.io/api/core/v1"
 	"net/http"
-	"relaper.com/kubemanage/inital"
-	"relaper.com/kubemanage/inital/client"
-	k8s2 "relaper.com/kubemanage/k8s"
-	"relaper.com/kubemanage/protocol"
-	"relaper.com/kubemanage/utils"
 )
 
 // @Tags cluster

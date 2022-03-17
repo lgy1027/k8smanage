@@ -3,6 +3,8 @@ package deploy
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/lgy1027/kubemanage/inital"
+	"github.com/lgy1027/kubemanage/utils"
 	"github.com/pkg/errors"
 	goyaml "gopkg.in/yaml.v2"
 	"io"
@@ -11,8 +13,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"relaper.com/kubemanage/inital"
-	"relaper.com/kubemanage/utils"
 	"strconv"
 )
 

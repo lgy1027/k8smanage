@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/garyburd/redigo/redis"
-	"relaper.com/kubemanage/model"
+	"github.com/lgy1027/kubemanage/model"
 	"strconv"
 	"testing"
 )

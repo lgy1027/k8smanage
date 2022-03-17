@@ -1,9 +1,9 @@
 package assemble
 
 import (
+	"github.com/lgy1027/kubemanage/model"
+	"github.com/lgy1027/kubemanage/utils"
 	appsv1 "k8s.io/api/apps/v1"
-	"relaper.com/kubemanage/model"
-	"relaper.com/kubemanage/utils"
 )
 
 func AssembleDeployment(namespace string, deploys []appsv1.Deployment) []model.DeploymentDetail {

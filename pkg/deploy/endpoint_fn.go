@@ -8,7 +8,7 @@ import (
 	"errors"
 
 	"github.com/go-kit/kit/endpoint"
-	tipErrors "relaper.com/kubemanage/utils/errors"
+	tipErrors "github.com/lgy1027/kubemanage/utils/errors"
 )
 
 func (s *Endpoints) Deploy(ctx context.Context, request *DeployRequest) (*DeploymentResponse, error) {

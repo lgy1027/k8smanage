@@ -1,8 +1,8 @@
 package client
 
 import (
+	k8s2 "github.com/lgy1027/kubemanage/k8s"
 	"k8s.io/client-go/kubernetes"
-	k8s2 "relaper.com/kubemanage/k8s"
 )
 
 var baseClient *BaseClient

@@ -3,10 +3,10 @@ package k8s
 import (
 	"fmt"
 	log "github.com/cihub/seelog"
+	"github.com/lgy1027/kubemanage/inital"
+	"github.com/lgy1027/kubemanage/model"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"relaper.com/kubemanage/inital"
-	"relaper.com/kubemanage/model"
 )
 
 func parseEvents(items []v1.Event) []model.EventData {

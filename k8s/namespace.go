@@ -1,10 +1,10 @@
 package k8s
 
 import (
+	"github.com/lgy1027/kubemanage/inital"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"relaper.com/kubemanage/inital"
 )
 
 type Ns struct {

@@ -2,6 +2,8 @@ package inital
 
 import (
 	"github.com/garyburd/redigo/redis"
+	"github.com/lgy1027/kubemanage/utils"
+	"github.com/lgy1027/kubemanage/utils/cache"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
@@ -9,8 +11,6 @@ import (
 	"k8s.io/metrics/pkg/client/clientset/versioned"
 	"net/http"
 	"path/filepath"
-	"relaper.com/kubemanage/utils"
-	"relaper.com/kubemanage/utils/cache"
 	"strings"
 )
 

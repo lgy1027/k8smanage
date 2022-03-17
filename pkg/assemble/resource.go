@@ -1,10 +1,10 @@
 package assemble
 
 import (
+	"github.com/lgy1027/kubemanage/model"
 	"github.com/shopspring/decimal"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/metrics/pkg/apis/metrics/v1beta1"
-	"relaper.com/kubemanage/model"
 )
 
 func AssembleResourceList(nodeMetrics []v1beta1.NodeMetrics, nodes []v1.Node) []model.ResourceDetail {

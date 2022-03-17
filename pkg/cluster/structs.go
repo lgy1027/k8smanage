@@ -3,8 +3,8 @@
 package cluster
 
 import (
+	"github.com/lgy1027/kubemanage/model"
 	"github.com/pkg/errors"
-	"relaper.com/kubemanage/model"
 	"strings"
 )
 

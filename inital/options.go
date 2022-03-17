@@ -3,7 +3,7 @@ package inital
 import (
 	"flag"
 	log "github.com/cihub/seelog"
-	"relaper.com/kubemanage/protocol"
+	"github.com/lgy1027/kubemanage/protocol"
 )
 
 type Options struct {

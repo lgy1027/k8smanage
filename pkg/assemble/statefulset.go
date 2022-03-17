@@ -1,9 +1,9 @@
 package assemble
 
 import (
+	"github.com/lgy1027/kubemanage/model"
+	"github.com/lgy1027/kubemanage/utils"
 	appsv1 "k8s.io/api/apps/v1"
-	"relaper.com/kubemanage/model"
-	"relaper.com/kubemanage/utils"
 )
 
 func AssembleStatefulSet(namespace string, stats []appsv1.StatefulSet) []model.StatefulSetDetail {

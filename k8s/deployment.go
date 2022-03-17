@@ -3,6 +3,8 @@ package k8s
 import (
 	"fmt"
 	log "github.com/cihub/seelog"
+	"github.com/lgy1027/kubemanage/inital"
+	"github.com/lgy1027/kubemanage/utils"
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -11,8 +13,6 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/util/retry"
-	"relaper.com/kubemanage/inital"
-	"relaper.com/kubemanage/utils"
 )
 
 type Deployment struct {

@@ -3,8 +3,8 @@
 package protocol
 
 import (
+	errors2 "github.com/lgy1027/kubemanage/utils/errors"
 	"github.com/pkg/errors"
-	errors2 "relaper.com/kubemanage/utils/errors"
 
 	"encoding/json"
 	"fmt"

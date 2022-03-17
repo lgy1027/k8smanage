@@ -6,12 +6,12 @@ import (
 	"github.com/emicklei/go-restful/log"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
+	"github.com/lgy1027/kubemanage/inital"
+	"github.com/lgy1027/kubemanage/inital/client"
+	"github.com/lgy1027/kubemanage/utils"
 	"io"
 	v1 "k8s.io/api/core/v1"
 	"net/http"
-	"relaper.com/kubemanage/inital"
-	"relaper.com/kubemanage/inital/client"
-	"relaper.com/kubemanage/utils"
 )
 
 type Logger interface {

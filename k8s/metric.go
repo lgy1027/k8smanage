@@ -1,9 +1,9 @@
 package k8s
 
 import (
+	"github.com/lgy1027/kubemanage/inital"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/metrics/pkg/apis/metrics/v1beta1"
-	"relaper.com/kubemanage/inital"
 )
 
 func GetPodListMetrics(namespace string, opts metav1.ListOptions) ([]v1beta1.PodMetrics, error) {
